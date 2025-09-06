@@ -51,10 +51,8 @@ A comprehensive Flask application that leverages machine learning and AI to opti
 1. **Clone the repository**
 
 2. **Create virtual environment**
-  
-3. **Create virtual environment**
-4. 
-4. **Set up environment variables**
+
+3. **Set up environment variables**
 
 Create a `.env` file in the root directory:
 Required API Keys
