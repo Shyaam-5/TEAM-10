@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - MedReferral</title>
+    <link rel="stylesheet" href="static/assets/css/base.css">
+    <link rel="stylesheet" href="static/assets/css/components.css">
+    <link rel="stylesheet" href="static/assets/css/utilities.css">
+    <link rel="stylesheet" href="static/assets/css/chatbot.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-brand">
+                <a href="/" class="brand-link">
+                    <div class="brand-logo">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span class="brand-text">MedReferral</span>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/referral" class="nav-link">Referral Tool</a>
+                <a href="/ranking" class="nav-link">Clinic Rankings</a>
+                <a href="/profile" class="nav-link active">Profile</a>
+            </nav>
+            <div class="header-actions">
+                <a href="/logout" class="btn-outline">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="profile-header-content">
+                    <div class="profile-avatar-section">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user-md" aria-hidden="true"></i>
+                        </div>
+                        <div class="profile-info">
+                            <h1 class="profile-name">{{ session.user.username if session.user and session.user.username else 'Healthcare Professional' }}</h1>
+                            <p class="profile-email">{{ session.user.email if session.user and session.user.email else 'email@example.com' }}</p>
+                            <div class="profile-badges">
+                                <span class="profile-badge verified">
+                                    <i class="fas fa-check-circle" aria-hidden="true"></i>
+                                    Verified Account
+                                </span>
+                                <span class="profile-badge active">
+                                    <i class="fas fa-circle" aria-hidden="true"></i>
+                                    Active
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn-secondary" type="button" onclick="editProfile()">
+                            <i class="fas fa-edit" aria-hidden="true"></i>
+                            Edit Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-content">
+                <div class="profile-grid">
+                    <!-- Account Information Card -->
+                    <div class="profile-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-user" aria-hidden="true"></i>
+                                Account Information
+                            </h2>
+                        </div>
+                        <div class="card-content">
+                            <div class="profile-field">
+                                <label class="field-label">User ID</label>
+                                <div class="field-value">{{ session.user.id if session.user and session.user.id else 'N/A' }}</div>
+                            </div>
+                            <div class="profile-field">
+                                <label class="field-label">Username</label>
+                                <div class="field-value">{{ session.user.username if session.user and session.user.username else 'Not set' }}</div>
+                            </div>
+                            <div class="profile-field">
+                                <label class="field-label">Email Address</label>
+                                <div class="field-value">{{ session.user.email if session.user and session.user.email else 'Not set' }}</div>
+                            </div>
+                            <div class="profile-field">
+                                <label class="field-label">Account Type</label>
+                                <div class="field-value">Healthcare Professional</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity & Statistics -->
+                    <div class="profile-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-chart-line" aria-hidden="true"></i>
+                                Activity & Usage
+                            </h2>
+                        </div>
+                        <div class="card-content">
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-value">247</div>
+                                    <div class="stat-label">Searches Performed</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">43</div>
+                                    <div class="stat-label">Clinics Bookmarked</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">12</div>
+                                    <div class="stat-label">Referrals Made</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">98%</div>
+                                    <div class="stat-label">Patient Satisfaction</div>
+                                </div>
+                            </div>
+                            
+                            <div class="recent-activity">
+                                <h3 class="activity-title">Recent Activity</h3>
+                                <div class="activity-list">
+                                    <div class="activity-item">
+                                        <i class="fas fa-search activity-icon" aria-hidden="true"></i>
+                                        <div class="activity-content">
+                                            <div class="activity-description">Searched for cardiologists in Mysore</div>
+                                            <div class="activity-time">2 hours ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <i class="fas fa-bookmark activity-icon" aria-hidden="true"></i>
+                                        <div class="activity-content">
+                                            <div class="activity-description">Bookmarked Apollo BGS Hospital</div>
+                                            <div class="activity-time">1 day ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <i class="fas fa-user-friends activity-icon" aria-hidden="true"></i>
+                                        <div class="activity-content">
+                                            <div class="activity-description">Made referral to Dr. Sanjeeva Rao</div>
+                                            <div class="activity-time">3 days ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Settings -->
+                    <div class="profile-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-cog" aria-hidden="true"></i>
+                                Account Settings
+                            </h2>
+                        </div>
+                        <div class="card-content">
+                            <div class="settings-list">
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <div class="setting-name">Email Notifications</div>
+                                        <div class="setting-description">Receive updates about new clinics and features</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <div class="setting-name">Search History</div>
+                                        <div class="setting-description">Save your search history for quick access</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <div class="setting-name">Two-Factor Authentication</div>
+                                        <div class="setting-description">Add extra security to your account</div>
+                                    </div>
+                                    <button class="btn-outline-sm" type="button">
+                                        <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                                        Enable 2FA
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="danger-zone">
+                                <h3 class="danger-title">Danger Zone</h3>
+                                <div class="danger-actions">
+                                    <button class="btn-danger-outline" type="button" onclick="changePassword()">
+                                        <i class="fas fa-key" aria-hidden="true"></i>
+                                        Change Password
+                                    </button>
+                                    <button class="btn-danger" type="button" onclick="deleteAccount()">
+                                        <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                                        Delete Account
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Dr. Ellie Chatbot Widget -->
+    {% include 'chatbot_widget.html' %}
+    
+    <!-- Scripts -->
+    <script src="static/assets/js/main.js"></script>
+    <script src="static/assets/js/chatbot.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize profile page functionality
+        initializeProfilePage();
+    });
+
+    function editProfile() {
+        // Placeholder for edit profile functionality
+        showToast('Edit profile functionality coming soon!', 'info');
+    }
+
+    function changePassword() {
+        showToast('Change password functionality coming soon!', 'info');
+    }
+
+    function deleteAccount() {
+        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            showToast('Account deletion functionality coming soon!', 'info');
+        }
+    }
+    </script>
+</body>
+</html>

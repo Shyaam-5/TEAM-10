@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referral Tool - MedReferral</title>
+    <link rel="stylesheet" href="static/assets/css/base.css">   
+    <link rel="stylesheet" href="static/assets/css/components.css">
+    <link rel="stylesheet" href="static/assets/css/utilities.css">
+    <link rel="stylesheet" href="static/assets/css/chatbot.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- PDF.js library for PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <!-- Tesseract.js for OCR from images -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+</head>
+<body>
+    <!-- Full Page Loading Overlay -->
+    <div id="page-loader" class="page-loader hidden">
+        <div class="loader-content">
+            <div class="medical-spinner">
+                <div class="spinner-circle"></div>
+                <div class="spinner-circle"></div>
+                <div class="spinner-circle"></div>
+            </div>
+            <div class="loader-text">
+                <h3 class="loader-title">Analyzing Patient Data</h3>
+                <p class="loader-subtitle" id="loader-progress">Extracting clinical features...</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header" role="banner">
+        <nav class="nav" aria-label="Main navigation">
+            <div class="nav-container">
+                <a href="/" class="logo" aria-label="MedReferral Home">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="logo-text">MedReferral</span>
+                </a>
+                
+                <div class="nav-links">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/referral" class="nav-link">Referral</a>
+                    <a href="/ranking" class="nav-link">Clinics</a>
+                </div>
+                <div class="auth-actions">
+                    <a href="/logout" class="btn btn-outline">Log Out</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Flash Messages Area -->
+    <div id="flash-messages" class="flash-container" aria-live="polite">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="main" role="main">
+        <div class="container">
+            <div class="referral-layout">
+                <!-- Left Column - Input Form -->
+                <div class="referral-input">
+                    <div class="card">
+                        <div class="card-header">
+                            <h1 class="text-2xl font-semibold">Patient Referral Assessment</h1>
+                            <p class="text-neutral-600 mt-2">Enter patient clinical notes to get AI-powered specialist recommendations</p>
+                        </div>
+                        
+                            <!-- Traditional Form -->
+                            <form id="referral-form" method="POST" action="/referral" class="referral-form">
+                                <div class="form-group">
+                                    <label for="patient_note" class="form-label">
+                                        Clinical Notes
+                                        <span class="text-error-500" aria-label="Required">*</span>
+                                    </label>
+                                    
+                                    <!-- Input Methods Tabs -->
+                                    <div class="input-methods-tabs">
+                                        <button type="button" class="method-tab active" data-method="text">Text Input</button>
+                                        <button type="button" class="method-tab" data-method="voice">Voice Input</button>
+                                        <button type="button" class="method-tab" data-method="file">File Upload</button>
+                                    </div>
+                                    
+                                    <!-- Text Input Method (Default) -->
+                                    <div class="input-method-content active" id="text-method">
+                                        <textarea 
+                                            id="patient_note"
+                                            name="patient_note"
+                                            class="form-input form-textarea"
+                                            placeholder="Enter patient symptoms, history, and clinical observations..."
+                                            required
+                                            maxlength="2000"
+                                            aria-describedby="note-help note-counter"
+                                        ></textarea>
+                                    </div>
+                                    
+                                    <!-- Voice Input Method -->
+                                    <div class="input-method-content" id="voice-method">
+                                        <div class="voice-input-container">
+                                            <button type="button" id="start-recording" class="btn btn-secondary">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M12 14C13.6569 14 15 12.6569 15 11V5C15 3.34315 13.6569 2 12 2C10.3431 2 9 3.34315 9 5V11C9 12.6569 10.3431 14 12 14Z" stroke="currentColor" stroke-width="2"/>
+                                                    <path d="M19 11C19 14.866 15.866 18 12 18M5 11C5 14.866 8.13401 18 12 18M12 18V22M8 22H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                                Start Recording
+                                            </button>
+                                            <div id="recording-status" class="recording-status hidden">
+                                                <div class="recording-indicator"></div>
+                                                <span>Recording... Click to stop</span>
+                                            </div>
+                                            <div class="voice-transcript-preview">
+                                                <p class="text-sm text-neutral-600">Transcript will appear here...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- File Upload Method -->
+                                    <div class="input-method-content" id="file-method">
+                                        <div class="file-upload-container">
+                                            <div class="file-upload-area" id="file-drop-zone">
+                                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="upload-icon">
+                                                    <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <path d="M10 9H9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                                <p class="upload-text">Drag & drop files here or</p>
+                                                <label for="file-upload" class="btn btn-secondary">Browse Files</label>
+                                                <input type="file" id="file-upload" accept=".pdf,.jpg,.jpeg,.png" multiple class="hidden">
+                                                <p class="text-xs text-neutral-500 mt-2">Supported formats: PDF, JPG, PNG (max 10MB each)</p>
+                                            </div>
+                                            <div class="uploaded-files-list hidden">
+                                                <h4 class="text-sm font-medium mb-2">Uploaded Files:</h4>
+                                                <div class="files-container"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="char-counter" id="note-counter">0 / 2000</div>
+                                    <div id="note-help" class="form-help">
+                                        Include patient demographics, symptoms, duration, severity, and location for best results.
+                                    </div>
+                                </div>
+
+                                <!-- Patient Email Field -->
+                                <div class="form-group">
+                                    <label for="patient_email" class="form-label">
+                                        Patient Email
+                                        <span class="text-error-500" aria-label="Required">*</span>
+                                    </label>
+                                    <input 
+                                        type="email" 
+                                        id="patient_email" 
+                                        name="patient_email" 
+                                        class="form-input" 
+                                        placeholder="patient@example.com"
+                                        required
+                                        aria-describedby="email-help"
+                                    >
+                                    <div id="email-help" class="form-help">
+                                        Enter the patient's email to link this referral to their account. The patient will be able to view this referral by logging in with this email.
+                                    </div>
+                                </div>
+
+                                <div class="sample-notes">
+                                    <button type="button" class="sample-trigger btn btn-secondary">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M9 11H15M9 15H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L19.7071 9.70711C19.8946 9.89464 20 10.149 20 10.4142V19C20 20.1046 19.1046 21 18 21H17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        Sample Notes
+                                    </button>
+                                    <div class="sample-dropdown hidden">
+                                        <button type="button" class="sample-option" data-sample="cardiology">
+                                            Cardiology Case
+                                        </button>
+                                        <button type="button" class="sample-option" data-sample="neurology">
+                                            Neurology Case
+                                        </button>
+                                        <button type="button" class="sample-option" data-sample="gastro">
+                                            Gastroenterology Case
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-full submit-btn">
+                                    <span class="btn-content">
+                                        <span class="btn-text">Analyze & Recommend Referral</span>
+                                        <span class="btn-spinner hidden">
+                                            <div class="inline-spinner">
+                                                <div></div>
+                                                <div></div>
+                                                <div></div>
+                                            </div>
+                                            Analyzing...
+                                        </span>
+                                    </span>
+                                </button>
+                            </form>
+
+                            <!-- API Mode Results Area -->
+                            <div id="api-results" class="api-results hidden">
+                                <div class="results-loading">
+                                    <div class="skeleton-card">
+                                        <div class="skeleton skeleton-title"></div>
+                                        <div class="skeleton skeleton-text"></div>
+                                        <div class="skeleton skeleton-text"></div>
+                                        <div class="skeleton skeleton-text"></div>
+                                    </div>
+                                </div>
+                                <div class="results-content hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Information Sidebar -->
+                <div class="referral-sidebar">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="text-lg font-semibold">Clinical Data Expected</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-section">
+                                <h4 class="text-sm font-medium text-neutral-700 mb-3">Patient Demographics</h4>
+                                <ul class="info-list">
+                                    <li>Age and gender</li>
+                                    <li>Patient location (city/region)</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="info-section">
+                                <h4 class="text-sm font-medium text-neutral-700 mb-3">Clinical Presentation</h4>
+                                <ul class="info-list">
+                                    <li>Chief complaints and symptoms</li>
+                                    <li>Symptom duration and severity</li>
+                                    <li>Relevant past medical history</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-section">
+                                <h4 class="text-sm font-medium text-neutral-700 mb-3">Key Symptom Categories</h4>
+                                <div class="symptom-grid">
+                                    <span class="symptom-tag">Chest pain</span>
+                                    <span class="symptom-tag">Headache</span>
+                                    <span class="symptom-tag">Neurological</span>
+                                    <span class="symptom-tag">Respiratory</span>
+                                    <span class="symptom-tag">GI symptoms</span>
+                                    <span class="symptom-tag">Fever</span>
+                                    <span class="symptom-tag">Bleeding</span>
+                                    <span class="symptom-tag">Swelling</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-6">
+                        <div class="card-body">
+                            <div class="info-panel">
+                                <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 16V12M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-medium mb-1">Clinical Decision Support</p>
+                                    <p class="text-xs text-neutral-600">
+                                        This tool provides suggestions to support clinical decision-making. 
+                                        Always use professional judgment and follow institutional protocols.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Login Required Modal -->
+    <div id="login-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="login-modal-title" aria-hidden="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="login-modal-title" class="modal-title">Authentication Required</h2>
+                <button type="button" class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-6">Please log in to access the referral tool and save your analysis results.</p>
+                <div class="flex gap-3">
+                    <a href="/login" class="btn btn-primary flex-1">Log In</a>
+                    <a href="/signup" class="btn btn-outline flex-1">Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="static/assets/js/main.js"></script>
+    <script src="static/assets/js/forms.js"></script>
+    
+    <!-- Loading Functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('referral-form');
+            const pageLoader = document.getElementById('page-loader');
+            const progressFill = document.getElementById('progress-fill');
+            const loaderProgress = document.getElementById('loader-progress');
+            const submitBtn = document.querySelector('.submit-btn');
+            const btnText = document.querySelector('.btn-text');
+            const btnSpinner = document.querySelector('.btn-spinner');
+
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Show page loader
+                    pageLoader.classList.remove('hidden');
+                    
+                    // Update button state
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('loading');
+                    btnText.classList.add('hidden');
+                    btnSpinner.classList.remove('hidden');
+
+                    // Simulate progress steps
+                    const steps = [
+                        { text: "Extracting clinical features...", progress: 20, delay: 500 },
+                        { text: "Processing with AI models...", progress: 40, delay: 800 },
+                        { text: "Analyzing symptom patterns...", progress: 60, delay: 1000 },
+                        { text: "Generating specialist recommendations...", progress: 80, delay: 800 },
+                        { text: "Finding nearby clinics...", progress: 95, delay: 500 },
+                        { text: "Complete! Redirecting...", progress: 100, delay: 300 }
+                    ];
+
+                    let currentStep = 0;
+                    
+                    function updateProgress() {
+                        if (currentStep < steps.length) {
+                            const step = steps[currentStep];
+                            loaderProgress.textContent = step.text;
+                            progressFill.style.width = step.progress + '%';
+                            
+                            setTimeout(() => {
+                                currentStep++;
+                                updateProgress();
+                            }, step.delay);
+                        }
+                    }
+
+                    // Start progress after short delay
+                    setTimeout(updateProgress, 300);
+                });
+            }
+
+            // Hide loader on page unload (back button, etc.)
+            window.addEventListener('beforeunload', function() {
+                if (pageLoader) {
+                    pageLoader.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+
+    <!-- New JavaScript for input methods -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Input method tabs functionality
+            const methodTabs = document.querySelectorAll('.method-tab');
+            const methodContents = document.querySelectorAll('.input-method-content');
+            
+            methodTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const method = tab.getAttribute('data-method');
+                    
+                    // Update tabs
+                    methodTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Update content
+                    methodContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${method}-method`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Voice input functionality with Groq API
+            const startRecordingBtn = document.getElementById('start-recording');
+            const recordingStatus = document.getElementById('recording-status');
+            const voicePreview = document.querySelector('.voice-transcript-preview');
+            const textarea = document.getElementById('patient_note');
+            const charCounter = document.getElementById('note-counter');
+            
+            let mediaRecorder = null;
+            let audioChunks = [];
+            let isRecording = false;
+            
+            // Check if browser supports MediaRecorder
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                startRecordingBtn.addEventListener('click', () => {
+                    if (!isRecording) {
+                        startRecording();
+                    } else {
+                        stopRecording();
+                    }
+                });
+            } else {
+                // Browser doesn't support MediaRecorder
+                startRecordingBtn.disabled = true;
+                startRecordingBtn.title = "Audio recording not supported in your browser";
+            }
+            
+            async function startRecording() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    
+                    // Use webm format which is widely supported
+                    const options = { mimeType: 'audio/webm;codecs=opus' };
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        // Fallback to default
+                        mediaRecorder = new MediaRecorder(stream);
+                    } else {
+                        mediaRecorder = new MediaRecorder(stream, options);
+                    }
+                    
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = async () => {
+                        // Create blob with proper MIME type
+                        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                        const audioBlob = new Blob(audioChunks, { type: mimeType });
+                        await transcribeAudio(audioBlob);
+                        
+                        // Stop all tracks to release microphone
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    startRecordingBtn.textContent = 'Stop Recording';
+                    recordingStatus.classList.remove('hidden');
+                    voicePreview.innerHTML = '<p class="text-sm text-neutral-600">Recording... Click to stop</p>';
+                } catch (error) {
+                    console.error('Error starting recording:', error);
+                    alert('Error accessing microphone. Please check permissions.');
+                }
+            }
+            
+            function stopRecording() {
+                if (mediaRecorder && isRecording) {
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    startRecordingBtn.textContent = 'Start Recording';
+                    recordingStatus.classList.add('hidden');
+                    voicePreview.innerHTML = '<p class="text-sm text-neutral-600">Processing audio...</p>';
+                }
+            }
+            
+            async function transcribeAudio(audioBlob) {
+                try {
+                    const formData = new FormData();
+                    
+                    // Determine file extension based on MIME type
+                    let filename = 'recording.webm';
+                    if (audioBlob.type.includes('webm')) {
+                        filename = 'recording.webm';
+                    } else if (audioBlob.type.includes('wav')) {
+                        filename = 'recording.wav';
+                    } else if (audioBlob.type.includes('mp4')) {
+                        filename = 'recording.mp4';
+                    } else if (audioBlob.type.includes('ogg')) {
+                        filename = 'recording.ogg';
+                    }
+                    
+                    formData.append('audio', audioBlob, filename);
+                    
+                    const response = await fetch('/api/voice/transcribe', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success && result.transcript) {
+                        // Update textarea and character counter
+                        const currentText = textarea.value;
+                        const newText = currentText + (currentText ? '\n\n' : '') + result.transcript;
+                        
+                        // Check character limit
+                        if (newText.length > 2000) {
+                            const truncatedText = newText.substring(0, 2000);
+                            textarea.value = truncatedText;
+                            alert('Transcript was truncated to fit the character limit.');
+                        } else {
+                            textarea.value = newText;
+                        }
+                        
+                        charCounter.textContent = `${textarea.value.length} / 2000`;
+                        
+                        // Update preview
+                        voicePreview.innerHTML = `<p class="text-sm text-green-600">✓ Transcribed: ${result.transcript}</p>`;
+                    } else {
+                        voicePreview.innerHTML = '<p class="text-sm text-red-600">Error transcribing audio</p>';
+                    }
+                } catch (error) {
+                    console.error('Error transcribing audio:', error);
+                    voicePreview.innerHTML = '<p class="text-sm text-red-600">Error transcribing audio</p>';
+                }
+            }
+            
+            // File upload functionality
+            const fileUpload = document.getElementById('file-upload');
+            const dropZone = document.getElementById('file-drop-zone');
+            const uploadedFilesList = document.querySelector('.uploaded-files-list');
+            const filesContainer = document.querySelector('.files-container');
+            
+            // Enable drag and drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropZone.classList.add('highlight');
+            }
+            
+            function unhighlight() {
+                dropZone.classList.remove('highlight');
+            }
+            
+            dropZone.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+            
+            fileUpload.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+            
+            function handleFiles(files) {
+                if (files.length > 0) {
+                    uploadedFilesList.classList.remove('hidden');
+                    
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        processFile(file);
+                    }
+                }
+            }
+            
+            function processFile(file) {
+                // Check file size (max 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File too large. Maximum size is 10MB.');
+                    return;
+                }
+                
+                const fileElement = document.createElement('div');
+                fileElement.className = 'uploaded-file';
+                fileElement.innerHTML = `
+                    <div class="file-info">
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">${formatFileSize(file.size)}</span>
+                    </div>
+                    <div class="file-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text">Processing...</span>
+                    </div>
+                `;
+                
+                filesContainer.appendChild(fileElement);
+                
+                const progressFill = fileElement.querySelector('.progress-fill');
+                const progressText = fileElement.querySelector('.progress-text');
+                
+                // Process based on file type
+                if (file.type === 'application/pdf') {
+                    extractTextFromPDF(file, progressFill, progressText);
+                } else if (file.type.startsWith('image/')) {
+                    extractTextFromImage(file, progressFill, progressText);
+                } else {
+                    progressText.textContent = 'Unsupported file type';
+                }
+            }
+            
+            function extractTextFromPDF(file, progressElement, progressText) {
+                progressText.textContent = 'Extracting text from PDF...';
+                
+                const fileReader = new FileReader();
+                
+                fileReader.onload = async function() {
+                    try {
+                        const typedArray = new Uint8Array(this.result);
+                        
+                        // Load PDF document
+                        const loadingTask = pdfjsLib.getDocument(typedArray);
+                        const pdf = await loadingTask.promise;
+                        
+                        let fullText = '';
+                        
+                        // Extract text from each page
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(item => item.str).join(' ');
+                            fullText += pageText + '\n';
+                            
+                            // Update progress
+                            const progress = (i / pdf.numPages) * 100;
+                            progressElement.style.width = `${progress}%`;
+                            progressText.textContent = `Processing page ${i} of ${pdf.numPages}`;
+                        }
+                        
+                        // Add extracted text to textarea
+                        appendToTextarea(fullText);
+                        
+                        // Update UI
+                        progressElement.style.width = '100%';
+                        progressText.textContent = 'Extraction complete';
+                        fileElement.querySelector('.file-info').classList.add('completed');
+                    } catch (error) {
+                        console.error('Error extracting PDF text:', error);
+                        progressText.textContent = 'Error extracting text';
+                    }
+                };
+                
+                fileReader.readAsArrayBuffer(file);
+            }
+            
+            function extractTextFromImage(file, progressElement, progressText) {
+                progressText.textContent = 'Extracting text from image...';
+                
+                Tesseract.recognize(
+                    file,
+                    'eng',
+                    {
+                        logger: message => {
+                            if (message.status === 'recognizing text') {
+                                progressElement.style.width = `${message.progress * 100}%`;
+                                progressText.textContent = `Processing: ${Math.round(message.progress * 100)}%`;
+                            }
+                        }
+                    }
+                ).then(result => {
+                    // Add extracted text to textarea
+                    appendToTextarea(result.data.text);
+                    
+                    // Update UI
+                    progressElement.style.width = '100%';
+                    progressText.textContent = 'Extraction complete';
+                    fileElement.querySelector('.file-info').classList.add('completed');
+                }).catch(error => {
+                    console.error('Error extracting text from image:', error);
+                    progressText.textContent = 'Error extracting text';
+                });
+            }
+            
+            function appendToTextarea(text) {
+                const currentText = textarea.value;
+                const newText = currentText + (currentText ? '\n\n' : '') + text;
+                
+                // Check if we're exceeding character limit
+                if (newText.length > 2000) {
+                    const truncatedText = newText.substring(0, 2000);
+                    textarea.value = truncatedText;
+                    alert('Text extracted from file was truncated to fit the character limit.');
+                } else {
+                    textarea.value = newText;
+                }
+                
+                // Update character counter
+                charCounter.textContent = `${textarea.value.length} / 2000`;
+            }
+            
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' bytes';
+                else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                else return (bytes / 1048576).toFixed(1) + ' MB';
+            }
+        });
+    </script>
+
+    <style>
+        /* Your existing referral page styles */
+        .referral-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: var(--space-8);
+            padding: var(--space-8) 0;
+        }
+
+        .referral-input {
+            min-width: 0;
+        }
+
+        .referral-sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background-color: var(--neutral-100);
+            border-radius: var(--radius-lg);
+            padding: var(--space-1);
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: var(--space-2) var(--space-4);
+            background: none;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--neutral-600);
+        }
+
+        .mode-btn.active {
+            background-color: white;
+            color: #3bfa10;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .mode-btn:hover:not(.active) {
+            color: var(--neutral-800);
+        }
+
+        .info-list {
+            list-style: none;
+            margin-bottom: var(--space-4);
+        }
+
+        .info-list li {
+            padding: var(--space-1) 0;
+            font-size: var(--font-size-sm);
+            color: var(--neutral-600);
+            position: relative;
+            padding-left: var(--space-4);
+        }
+
+        .info-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--secondary-600);
+            font-weight: bold;
+        }
+
+        .info-section {
+            margin-bottom: var(--space-6);
+        }
+
+        .info-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .symptom-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+
+        .symptom-tag {
+            font-size: var(--font-size-xs);
+            padding: var(--space-1) var(--space-2);
+            background-color: var(--primary-50);
+            color: var(--primary-700);
+            border-radius: var(--radius-full);
+            border: 1px solid var(--primary-200);
+        }
+
+        .sample-notes {
+            position: relative;
+            margin-bottom: var(--space-6);
+        }
+
+        .sample-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: 10;
+            overflow: hidden;
+            margin-top: var(--space-1);
+        }
+
+        .sample-option {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+            font-size: var(--font-size-sm);
+        }
+
+        .sample-option:hover {
+            background-color: var(--neutral-50);
+        }
+
+        .api-results {
+            margin-top: var(--space-8);
+        }
+
+        .results-content {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* NEW SPINNER STYLES - Carefully namespaced to avoid conflicts */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.3s ease;
+        }
+
+        .page-loader.hidden {
+            display: none;
+        }
+
+        .loader-content {
+            text-align: center;
+            color: white;
+            max-width: 400px;
+            padding: 2rem;
+        }
+
+        .medical-spinner {
+            margin: 0 auto 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .spinner-circle {
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            animation: spinner-bounce 1.4s ease-in-out infinite both;
+        }
+
+        .spinner-circle:nth-child(1) { animation-delay: -0.32s; }
+        .spinner-circle:nth-child(2) { animation-delay: -0.16s; }
+        .spinner-circle:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes spinner-bounce {
+            0%, 80%, 100% { 
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .loader-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .loader-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #43e97b, #38f9d7);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Button Loading States */
+        .submit-btn {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn.loading {
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
+        .btn-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+        }
+
+        .btn-text,
+        .btn-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-spinner.hidden,
+        .btn-text.hidden {
+            display: none;
+        }
+
+        .inline-spinner {
+            display: flex;
+            gap: 2px;
+        }
+
+        .inline-spinner div {
+            width: 4px;
+            height: 16px;
+            background: currentColor;
+            border-radius: 2px;
+            animation: inline-bounce 1.4s ease-in-out infinite both;
+        }
+
+        .inline-spinner div:nth-child(1) { animation-delay: -0.32s; }
+        .inline-spinner div:nth-child(2) { animation-delay: -0.16s; }
+        .inline-spinner div:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes inline-bounce {
+            0%, 80%, 100% { 
+                transform: scaleY(0.4);
+                opacity: 0.5;
+            }
+            40% { 
+                transform: scaleY(1);
+                opacity: 1;
+            }
+        }
+
+        /* Skeleton Loading */
+        .skeleton-card {
+            padding: 1.5rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 2s infinite;
+            border-radius: 4px;
+        }
+
+        .skeleton-title {
+            height: 24px;
+            width: 70%;
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+
+        .skeleton-text:last-child {
+            width: 60%;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* NEW STYLES FOR INPUT METHODS */
+        .input-methods-tabs {
+            display: flex;
+            background-color: var(--neutral-100);
+            border-radius: var(--radius-md);
+            padding: var(--space-1);
+            margin-bottom: var(--space-4);
+        }
+
+        .method-tab {
+            flex: 1;
+            padding: var(--space-2) var(--space-3);
+            background: none;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--neutral-600);
+            text-align: center;
+        }
+
+        .method-tab.active {
+            background-color: white;
+            color: #3bfa10;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .method-tab:hover:not(.active) {
+            color: var(--neutral-800);
+        }
+
+        .input-method-content {
+            display: none;
+        }
+
+        .input-method-content.active {
+            display: block;
+        }
+
+        /* Voice input styles */
+        .voice-input-container {
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+        }
+
+        #start-recording {
+            width: 100%;
+            margin-bottom: var(--space-4);
+        }
+
+        .recording-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            color: var(--error-500);
+            font-weight: 500;
+            margin-bottom: var(--space-4);
+        }
+
+        .recording-indicator {
+            width: 12px;
+            height: 12px;
+            background-color: var(--error-500);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .voice-transcript-preview {
+            min-height: 100px;
+            border: 1px dashed var(--neutral-300);
+            border-radius: var(--radius-md);
+            padding: var(--space-3);
+            background-color: var(--neutral-50);
+        }
+
+        /* File upload styles */
+        .file-upload-container {
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .file-upload-area {
+            padding: var(--space-8) var(--space-4);
+            text-align: center;
+            border: 2px dashed var(--neutral-300);
+            border-radius: var(--radius-lg);
+            margin: var(--space-4);
+            transition: all var(--transition-normal);
+        }
+
+        .file-upload-area.highlight {
+            border-color: var(--primary-500);
+            background-color: var(--primary-50);
+        }
+
+        .upload-icon {
+            color: var(--neutral-400);
+            margin-bottom: var(--space-3);
+        }
+
+        .upload-text {
+            color: var(--neutral-600);
+            margin-bottom: var(--space-3);
+        }
+
+        .uploaded-files-list {
+            padding: var(--space-4);
+            border-top: 1px solid var(--neutral-200);
+        }
+
+        .uploaded-file {
+            padding: var(--space-3);
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-3);
+        }
+
+        .file-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-2);
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: var(--neutral-800);
+        }
+
+        .file-size {
+            font-size: var(--font-size-sm);
+            color: var(--neutral-500);
+        }
+
+        .file-info.completed .file-name {
+            color: var(--success-600);
+        }
+
+        .file-progress {
+            margin-top: var(--space-2);
+        }
+
+        .file-progress .progress-bar {
+            height: 6px;
+            background-color: var(--neutral-200);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: var(--space-1);
+        }
+
+        .file-progress .progress-fill {
+            height: 100%;
+            background-color: var(--primary-500);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: var(--font-size-sm);
+            color: var(--neutral-600);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .referral-layout {
+                grid-template-columns: 1fr;
+                gap: var(--space-6);
+            }
+            
+            .referral-sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .referral-layout {
+                padding: var(--space-6) 0;
+            }
+            
+            .mode-toggle,
+            .input-methods-tabs {
+                flex-direction: column;
+                gap: var(--space-1);
+            }
+            
+            .mode-btn,
+            .method-tab {
+                text-align: center;
+            }
+            
+            .loader-content {
+                padding: 1.5rem;
+            }
+            
+            .loader-title {
+                font-size: 1.25rem;
+            }
+            
+            .loader-subtitle {
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+    
+    <!-- Dr. Ellie Chatbot Widget -->
+    {% include 'chatbot_widget.html' %}
+    
+    <script src="static/assets/js/forms.js"></script>
+    <script src="static/assets/js/chatbot.js"></script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with Dr. Ellie</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #chat-app {
+            width: 100%;
+            max-width: 600px;
+            height: 90vh;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #d1d9e0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            background-color: #ffffff;
+            overflow: hidden;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 16px;
+            text-align: center;
+            border-bottom: 1px solid #0056b3;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        #chat-container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 75%;
+            line-height: 1.5;
+        }
+        .bot-message {
+            background-color: #e9ecef;
+            color: #495057;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .loading-indicator {
+            align-self: flex-start;
+            color: #888;
+            font-style: italic;
+        }
+        #chat-form {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #d1d9e0;
+            background-color: #f8f9fa;
+        }
+        #question {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 1em;
+        }
+        #question:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="chat-app">
+        <header>
+            <h1>Chat with Dr. Ellie</h1>
+        </header>
+        <div id="chat-container">
+            </div>
+        <form id="chat-form">
+            <input type="text" id="question" placeholder="Ask about the MedRef website..." autocomplete="off">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const chatContainer = document.getElementById("chat-container");
+            const chatForm = document.getElementById("chat-form");
+            const questionInput = document.getElementById("question");
+
+            // Function to add a message to the chat window
+            const addMessage = (sender, text) => {
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add("message", sender === "user" ? "user-message" : "bot-message");
+                messageDiv.textContent = text;
+                chatContainer.appendChild(messageDiv);
+                // Scroll to the latest message
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            };
+
+            // Function to show a temporary loading indicator
+            const showLoading = () => {
+                const loadingDiv = document.createElement("div");
+                loadingDiv.id = "loading";
+                loadingDiv.classList.add("message", "bot-message", "loading-indicator");
+                loadingDiv.textContent = "Dr. Ellie is thinking...";
+                chatContainer.appendChild(loadingDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            };
+
+            // Function to remove the loading indicator
+            const hideLoading = () => {
+                const loadingDiv = document.getElementById("loading");
+                if (loadingDiv) {
+                    loadingDiv.remove();
+                }
+            };
+            
+            // Fetch the initial welcome message when the page loads
+            const fetchWelcomeMessage = async () => {
+                try {
+                    const response = await fetch('/welcome');
+                    const data = await response.json();
+                    addMessage('bot', data.answer);
+                } catch (error) {
+                    console.error("Error fetching welcome message:", error);
+                    addMessage('bot', "Sorry, I couldn't connect to the server. Please try refreshing the page.");
+                }
+            };
+
+            // Handle form submission
+            chatForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const question = questionInput.value.trim();
+                
+                if (!question) return;
+
+                // Add user's question to the chat
+                addMessage("user", question);
+                questionInput.value = "";
+                showLoading();
+
+                // Send the question to the backend
+                try {
+                    const response = await fetch("/ask", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ question: question }),
+                    });
+
+                    const data = await response.json();
+                    hideLoading();
+                    addMessage("bot", data.answer);
+
+                } catch (error) {
+                    console.error("Error asking question:", error);
+                    hideLoading();
+                    addMessage("bot", "Oops! Something went wrong. I couldn't get a response.");
+                }
+            });
+
+            // Load the initial welcome message
+            fetchWelcomeMessage();
+        });
+    </script>
+
+</body>
+</html>
