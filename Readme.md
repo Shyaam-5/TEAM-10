@@ -56,32 +56,49 @@ A comprehensive Flask application that leverages machine learning and AI to opti
 
 Create a `.env` file in the root directory:
 Required API Keys
+
 GEMINI_API_KEY=your_gemini_api_key
 
 GOOGLE_PLACES_API_KEY=your_google_places_key
 
 GROQ_API_KEY=your_groq_api_key
+
 PINECONE_API_KEY=your_pinecone_key
 
 Authentication
+
 SECRET_KEY=your_secret_key
+
 JWT_SECRET_KEY=your_jwt_secret_key
+
 GOOGLE_CLIENT_ID=your_google_oauth_client_id
+
 GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
 
 Snowflake (Optional - will use local files if not provided)
+
 SNOWFLAKE_USER=your_snowflake_user
+
 SNOWFLAKE_PASSWORD=your_snowflake_password
+
 SNOWFLAKE_ACCOUNT=your_snowflake_account
+
 SNOWFLAKE_WAREHOUSE=your_warehouse
+
 SNOWFLAKE_DATABASE=your_database
+
 SNOWFLAKE_SCHEMA=your_schema
+
 SNOWFLAKE_ROLE=your_role
 
 Model Paths (Optional - uses defaults if not specified)
+
 MODEL_PATH=advanced_ensemble_pipeline.pkl
+
 ENCODER_PATH=referral_label_encoder.pkl
+
 WAIT_TIME_MODEL_PATH=wait_time_predictor.pkl
+
 
 
 5. **Initialize Pinecone Index**
