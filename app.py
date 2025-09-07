@@ -1292,7 +1292,7 @@ def compute_dynamic_clinics_for_map(location_text: str, specialty: str, max_resu
         lambda x: normalize_value(x, min_dist, max_dist, lower_is_better=True) if x is not None else 0.0
     )
     specialists_df['score_cost'] = specialists_df['CONSULTATION_FEE'].apply(
-        lambda x: normalize_value(x, min_cost, max_cost, lower_is_better=True)
+        lambda x: normalize_value(x, min_cost, max_cost, lower_is_bgit push etter=True)
     )
     specialists_df['final_score'] = (
         w_wait * specialists_df['score_wait'] +
