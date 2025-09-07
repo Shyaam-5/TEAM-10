@@ -11,6 +11,346 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Updated Sage Green Color Scheme */
+        :root {
+            --bg-dark: #ffffff;
+            --bg-card: #f8faf9;
+            --primary-accent: #10b981; /* Sage green */
+            --primary-glow: rgba(16, 185, 129, 0.08);
+            --border-color: rgba(156, 163, 175, 0.15);
+            --text-primary: #065f46;
+            --text-secondary: #374151;
+            --gradient-text: linear-gradient(90deg, #10b981, #34d399);
+            --shadow-glow: 0 0 35px var(--primary-glow);
+            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.06);
+            --success-light: rgba(16, 185, 129, 0.1);
+            --border-hover: rgba(16, 185, 129, 0.3);
+        }
+
+        /* Logo and Navigation */
+        .logo-text {
+            color: var(--primary-accent);
+        }
+
+        .logo-icon {
+            color: var(--primary-accent);
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* Buttons */
+        .btn-outline {
+            border: 1px solid var(--primary-accent);
+            color: var(--primary-accent);
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background-color: var(--success-light);
+            border-color: var(--primary-accent);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-accent);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #059669; /* Darker sage on hover */
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .oauth-btn:hover {
+            background-color: var(--success-light);
+            border-color: var(--border-hover);
+        }
+
+        .auth-link {
+            color: var(--primary-accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-link:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
+        /* Form styling */
+        .form-input:focus {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+
+        .auth-title {
+            color: var(--text-primary);
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-help {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-error {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-input.error {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-input {
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.75rem;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        /* Password strength indicator */
+        .password-strength {
+            margin-top: 0.75rem;
+        }
+
+        .strength-bar {
+            width: 100%;
+            height: 4px;
+            background-color: rgba(156, 163, 175, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .strength-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .strength-fill[data-strength="0"] { width: 0%; background-color: transparent; }
+        .strength-fill[data-strength="1"] { width: 25%; background-color: #dc2626; }
+        .strength-fill[data-strength="2"] { width: 50%; background-color: #f59e0b; }
+        .strength-fill[data-strength="3"] { width: 75%; background-color: #eab308; }
+        .strength-fill[data-strength="4"] { width: 100%; background-color: var(--primary-accent); }
+
+        .strength-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Flash messages */
+        .flash {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .flash-success {
+            background-color: var(--success-light);
+            color: var(--text-primary);
+            border: 1px solid var(--primary-accent);
+        }
+
+        .flash-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .flash-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .flash-info {
+            background-color: var(--success-light);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Auth divider */
+        .auth-divider {
+            margin: 1.5rem 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .auth-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .auth-divider span {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            padding: 0 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* OAuth button */
+        .oauth-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .oauth-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Loading states */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn-loading {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Form groups */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Header styling */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Navigation container */
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            height: 70px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .auth-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Logo styling */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Professional notice for doctors */
+        .professional-notice {
+            background: var(--success-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .professional-notice .info-icon {
+            color: var(--primary-accent);
+            flex-shrink: 0;
+            margin-top: 2px;
+            width: 20px;
+            height: 20px;
+        }
+
+        .professional-notice p {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -41,7 +381,6 @@
 
     <!-- Flash Messages Area -->
     <div id="flash-messages" class="flash-container" aria-live="polite">
-        <!-- Flask flash messages will be injected here -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -55,9 +394,17 @@
     <main class="main auth-main" role="main">
         <div class="auth-container">
             <div class="auth-card">
+                <!-- Professional Notice for Doctors -->
+                <div class="professional-notice">
+                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <p><strong>For Licensed Healthcare Professionals Only:</strong> This registration is exclusively for licensed medical doctors and healthcare providers. Account verification may be required.</p>
+                </div>
+
                 <div class="auth-header">
-                    <h1 class="auth-title">Create Account</h1>
-                    <p class="auth-subtitle">Join MedReferral to access intelligent clinical tools</p>
+                    <h1 class="auth-title">Create Doctor Account</h1>
+                    <p class="auth-subtitle">Join MedReferral to access AI-powered referral optimization tools</p>
                 </div>
 
                 <!-- Signup Form -->
@@ -80,7 +427,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="email" class="form-label">Email Address</label>
+                        <label for="email" class="form-label">Professional Email Address</label>
                         <input 
                             type="email" 
                             id="email" 
@@ -105,7 +452,7 @@
                             required 
                             autocomplete="new-password"
                             aria-describedby="password-help password-error">
-                        <div id="password-help" class="form-help">Minimum 8 characters</div>
+                        <div id="password-help" class="form-help">Minimum 8 characters with letters, numbers, and symbols</div>
                         <div class="password-strength" aria-label="Password strength indicator">
                             <div class="strength-bar">
                                 <div class="strength-fill" data-strength="0"></div>
@@ -118,7 +465,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-full">
-                        <span class="btn-text">Create Account</span>
+                        <span class="btn-text">Create Doctor Account</span>
                         <span class="btn-loading hidden" aria-hidden="true">
                             <span class="spinner"></span>
                             Creating account...

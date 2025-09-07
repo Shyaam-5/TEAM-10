@@ -3,369 +3,724 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Dashboard - Healthcare Portal</title>
+    <title>Patient Dashboard - MedReferral</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBcN4HTut5WWjRN0oWH7cL-Nxeyko9WJzg&libraries=places,geometry"></script>
+
     <style>
+        /* Your Exact Sage Green Color Palette */
         :root {
-            --primary-color: #0056b3;
-            --secondary-color: #6c757d;
-            --success-color: #198754;
-            --info-color: #0dcaf0;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --light-bg: #f8f9fa;
-            --ellie-primary: #4a90e2;
-            --ellie-secondary: #f0f8ff;
-            --ellie-accent: #2c5aa0;
+            --bg-dark: #ffffff;
+            --bg-card: #f8faf9;
+            --primary-accent: #10b981; /* Sage green */
+            --primary-glow: rgba(16, 185, 129, 0.08);
+            --border-color: rgba(156, 163, 175, 0.15);
+            --text-primary: #065f46;
+            --text-secondary: #374151;
+            --gradient-text: linear-gradient(90deg, #10b981, #34d399);
+            --shadow-glow: 0 0 35px var(--primary-glow);
+            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.06);
+            
+            /* Additional supporting colors for sage theme */
+            --success-light: rgba(16, 185, 129, 0.1);
+            --border-hover: rgba(16, 185, 129, 0.3);
+            
+            /* Additional theme colors */
+            --gradient-primary: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+            --gradient-secondary: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            background-color: var(--light-bg);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        .navbar {
-            background: linear-gradient(135deg, var(--primary-color), #004494);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--bg-card);
+            overflow: hidden;
         }
 
-        .dashboard-header {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            padding: 30px;
-        }
-
-        .referral-card {
-            background: white;
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
-        }
-
-        .referral-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
-        .referral-header {
-            background: linear-gradient(135deg, var(--info-color), #0bb5d6);
-            color: white;
-            border-radius: 12px 12px 0 0;
-            padding: 20px;
-        }
-
-        .specialist-badge {
-            background: var(--success-color);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 25px;
-            font-size: 0.9em;
-            font-weight: 600;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-
-        .clinic-badge {
-            background: var(--warning-color);
-            color: #000;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 500;
-        }
-
-        .stats-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .stats-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-
-        /* Dr. Ellie Central Widget */
-        .ellie-central-widget {
-            background: linear-gradient(135deg, var(--ellie-primary), var(--ellie-accent));
-            color: white;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 30px rgba(74, 144, 226, 0.3);
-        }
-
-        .ellie-avatar-large {
-            width: 80px;
-            height: 80px;
+        .floating-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--primary-accent);
             border-radius: 50%;
-            background: white;
-            color: var(--ellie-primary);
+            animation: float 30s infinite linear;
+            opacity: 0.1;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.1; }
+            90% { opacity: 0.1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Navigation */
+        .navbar {
+            background: var(--gradient-primary);
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(20px);
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+            color: #e6fffa !important;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.75rem 1rem !important;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #e6fffa;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link:hover::before,
+        .nav-link.active::before {
+            width: 80%;
+        }
+
+        /* Compact Dr. Ellie Welcome */
+        .ellie-welcome-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .ellie-welcome-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-text);
+        }
+
+        .ellie-welcome-card:hover {
+            box-shadow: var(--shadow-glow);
+            border-color: var(--border-hover);
+        }
+
+        .ellie-avatar-compact {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            margin: 0 auto 20px;
-            box-shadow: 0 4px 20px rgba(255,255,255,0.3);
+            box-shadow: 0 4px 15px var(--primary-glow);
+            flex-shrink: 0;
         }
 
-        .ellie-intro {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .ellie-intro h3 {
-            margin-bottom: 15px;
+        .ellie-welcome-content h4 {
+            margin-bottom: 0.5rem;
             font-weight: 600;
+            color: var(--text-primary);
         }
 
-        .followup-alert {
-            background: rgba(255,193,7,0.1);
-            border: 2px solid var(--warning-color);
-            border-radius: 10px;
+        .ellie-welcome-content p {
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+
+        /* Alert Cards */
+        .alert-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--warning-color);
+            border-radius: 12px;
             padding: 20px;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--warning-color);
+        }
+
+        .alert-card.bg-warning {
+            background: rgba(245, 158, 11, 0.05) !important;
+            color: var(--text-primary);
+            border-color: var(--warning-color);
+        }
+
+        .alert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* Enhanced Statistics Cards */
+        .stats-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px 25px;
+            text-align: center;
+            box-shadow: var(--shadow-card);
             margin-bottom: 20px;
-            animation: pulse 2s infinite;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-text);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .followup-completed {
-            background: rgba(25, 135, 84, 0.1);
-            border: 2px solid var(--success-color);
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-glow);
+            border-color: var(--border-hover);
+        }
+
+        .stats-card:hover::before {
+            opacity: 1;
+        }
+
+        .stats-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:hover .stats-number {
+            transform: scale(1.05);
+        }
+
+        .stats-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        /* Modern Referral Cards */
+        .modern-referral-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 24px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modern-referral-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-glow);
+            border-color: var(--border-hover);
+        }
+
+        /* Top Section */
+        .referral-top-section {
+            background: var(--success-light);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .referral-id-badge {
+            background: var(--primary-accent);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 8px var(--primary-glow);
+        }
+
+        .referral-date {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .referral-status-badge .status-complete {
+            background: var(--success-light);
+            color: var(--primary-accent);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid var(--primary-accent);
+        }
+
+        .referral-status-badge .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid var(--warning-color);
+        }
+
+        .referral-status-badge .status-active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info-color);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid var(--info-color);
+        }
+
+        /* Main Content */
+        .referral-main-content {
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .specialist-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .specialist-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .specialist-name {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .clinic-name {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Clinic View Button */
+        .view-clinics-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .view-clinics-btn:hover {
+            background: var(--gradient-secondary);
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* Action Buttons */
+        .btn-followup {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
             border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
-        /* Enhanced Chatbot Modal */
-        .modal-xl {
-            max-width: 900px;
+        .btn-followup:hover {
+            background: var(--gradient-secondary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-action {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 2px solid;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-view {
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+        }
+
+        .btn-view:hover {
+            background: var(--primary-accent);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .btn-book {
+            border-color: var(--info-color);
+            color: var(--info-color);
+        }
+
+        .btn-book:hover {
+            background: var(--info-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Medical Explanation Section */
+        .medical-explanation-section {
+            border-top: 1px solid var(--border-color);
+            padding: 16px 24px;
+        }
+
+        .explanation-toggle {
+            background: none;
+            border: none;
+            color: var(--primary-accent);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            text-align: left;
+            padding: 8px 0;
+            transition: all 0.3s ease;
+        }
+
+        .explanation-toggle:hover {
+            color: var(--text-primary);
+        }
+
+        .toggle-icon {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .explanation-toggle[aria-expanded="true"] .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .explanation-content {
+            background: var(--success-light);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            border-left: 4px solid var(--primary-accent);
+        }
+
+        /* Follow-up Summary */
+        .followup-summary-section {
+            background: var(--success-light);
+            padding: 20px 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .summary-title {
+            color: var(--primary-accent);
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .summary-full {
+            grid-column: 1 / -1;
+        }
+
+        .summary-item {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .summary-item strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Enhanced Buttons */
+        .btn {
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: none;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-ellie {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .btn-ellie:hover {
+            background: var(--gradient-secondary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-color) !important;
+            color: white !important;
+            border-color: var(--warning-color) !important;
+        }
+
+        .btn-outline-primary {
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-accent);
+            color: white;
+        }
+
+        .btn-outline-success {
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+        }
+
+        .btn-outline-success:hover {
+            background: var(--primary-accent);
+            color: white;
+        }
+
+        /* Status Badges */
+        .badge {
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .badge.bg-success {
+            background: var(--primary-accent) !important;
+        }
+
+        .badge.bg-warning {
+            background: var(--warning-color) !important;
+            color: white !important;
+        }
+
+        .badge.bg-info {
+            background: var(--info-color) !important;
+            color: white !important;
+        }
+
+        /* Modal Enhancements */
+        .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--shadow-glow);
+            border: 1px solid var(--border-color);
         }
 
         .chatbot-modal-header {
-            background: linear-gradient(135deg, var(--ellie-primary), var(--ellie-accent));
+            background: var(--gradient-primary);
             color: white;
-            border-radius: 15px 15px 0 0;
+            border-radius: 20px 20px 0 0;
             padding: 25px;
         }
 
         .chatbot-modal-body {
+            background: var(--bg-card);
             max-height: 600px;
             overflow-y: auto;
             padding: 30px;
-            background: var(--ellie-secondary);
-        }
-
-        .chat-message {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: flex-start;
-        }
-
-        .chat-message.ellie {
-            justify-content: flex-start;
-        }
-
-        .chat-message.patient {
-            justify-content: flex-end;
-        }
-
-        .chat-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-
-        .chat-avatar.ellie {
-            background: var(--ellie-primary);
-            color: white;
-            margin-right: 15px;
-        }
-
-        .chat-avatar.patient {
-            background: var(--success-color);
-            color: white;
-            margin-left: 15px;
-        }
-
-        .chat-bubble {
-            max-width: 70%;
-            padding: 15px 20px;
-            border-radius: 20px;
-            word-wrap: break-word;
-            position: relative;
         }
 
         .chat-bubble.ellie {
-            background: white;
-            color: #333;
-            border: 1px solid #e1e8ed;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
         }
 
         .chat-bubble.patient {
-            background: var(--ellie-primary);
+            background: var(--gradient-primary);
             color: white;
         }
 
-        .chat-input-area {
-            padding: 25px;
-            background: white;
-            border-top: 1px solid #e1e8ed;
-            border-radius: 0 0 15px 15px;
-        }
-
-        .chat-input-group {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .chat-input {
-            flex: 1;
-            border: 2px solid #e1e8ed;
-            border-radius: 25px;
-            padding: 15px 20px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .chat-input:focus {
-            border-color: var(--ellie-primary);
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        .chat-avatar.ellie {
+            background: var(--primary-accent);
+            color: white;
         }
 
         .chat-send-btn {
-            background: var(--ellie-primary);
+            background: var(--primary-accent);
             border: none;
             color: white;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: all 0.3s ease;
         }
 
         .chat-send-btn:hover {
-            background: var(--ellie-accent);
-            transform: scale(1.05);
+            background: var(--text-primary);
         }
 
-        .chat-send-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .typing-indicator {
-            display: none;
-            align-items: center;
-            padding: 15px 20px;
-            background: white;
-            border-radius: 20px;
-            border: 1px solid #e1e8ed;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-left: 60px;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 5px;
-        }
-
-        .typing-dots span {
-            width: 8px;
-            height: 8px;
-            background: var(--ellie-primary);
-            border-radius: 50%;
-            animation: typing 1.5s infinite;
-        }
-
-        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-            30% { transform: translateY(-8px); opacity: 1; }
-        }
-
-        .progress-indicator {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .progress-steps {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .progress-step {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
+        /* Progress Indicators */
         .progress-step.completed {
-            background: var(--success-color);
+            background: var(--primary-accent);
             color: white;
         }
 
         .progress-step.current {
-            background: var(--ellie-primary);
+            background: var(--primary-accent);
             color: white;
         }
 
-        .progress-step.pending {
-            background: #e1e8ed;
-            color: #666;
+        .progress-bar {
+            background: var(--gradient-text) !important;
         }
 
-        .quick-responses {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
+        /* Quick Response Buttons */
         .quick-response-btn {
-            background: white;
-            border: 2px solid var(--ellie-primary);
-            color: var(--ellie-primary);
+            background: var(--bg-dark);
+            border: 2px solid var(--primary-accent);
+            color: var(--primary-accent);
             padding: 8px 15px;
             border-radius: 20px;
             font-size: 14px;
@@ -374,53 +729,147 @@
         }
 
         .quick-response-btn:hover {
-            background: var(--ellie-primary);
+            background: var(--primary-accent);
             color: white;
         }
 
-        .btn-ellie {
-            background: linear-gradient(135deg, var(--ellie-primary), var(--ellie-accent));
-            border: none;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
-        }
-
-        .btn-ellie:hover {
-            background: linear-gradient(135deg, var(--ellie-accent), var(--ellie-primary));
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
-            color: white;
-        }
-
-        .followup-summary {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 15px;
-            border-left: 5px solid var(--success-color);
-        }
-
+        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            background: white;
+            background: var(--bg-dark);
+            border-radius: 16px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Map Integration Styles */
+        .clinic-map-modal .modal-dialog {
+            max-width: 1200px;
+        }
+
+        .map-container {
+            height: 600px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .google-map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .map-controls .btn {
+            backdrop-filter: blur(20px);
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            min-width: 100px;
+        }
+
+        .map-controls .btn:hover {
+            background: var(--primary-accent);
+            color: white;
+            border-color: var(--primary-accent);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .ellie-welcome-card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .ellie-avatar-compact {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+            
+            .stats-card {
+                margin-bottom: 15px;
+                padding: 25px 20px;
+            }
+            
+            .stats-number {
+                font-size: 2.2rem;
+            }
+            
+            .modern-referral-card {
+                margin-bottom: 20px;
+            }
+            
+            .referral-top-section {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+            
+            .referral-main-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .specialist-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Accessibility and Focus States */
+        .btn:focus,
+        .modern-referral-card:focus {
+            outline: 3px solid var(--primary-glow);
+            outline-offset: 2px;
+        }
+
+        /* Print Styles */
+        @media print {
+            .animated-bg,
+            .btn,
+            .modal {
+                display: none !important;
+            }
+            
+            .modern-referral-card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Animated Background -->
+    <div class="animated-bg" id="animatedBg"></div>
+
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="">
                 <i class="fas fa-heartbeat me-2"></i>
-                Healthcare Portal
+                MedReferral
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -430,11 +879,6 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="/patient/dashboard">
                             <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/patient/profile">
-                            <i class="fas fa-user me-1"></i>Profile
                         </a>
                     </li>
                 </ul>
@@ -468,40 +912,39 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Dr. Ellie Central Widget -->
-        <div class="ellie-central-widget">
-            <div class="ellie-avatar-large">E</div>
-            <div class="ellie-intro">
-                <h3>Hi! I'm Dr. Ellie, Your Personal AI Health Assistant</h3>
-                <p class="mb-4">I'm here to help you track your health journey and follow up on your specialist visits. Let's make sure you're getting the best care possible!</p>
-                
-                <!-- Follow-up Status Check -->
+        <!-- Compact Dr. Ellie Welcome -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="ellie-welcome-card">
+                    <div class="d-flex align-items-center">
+                        <div class="ellie-avatar-compact me-4">E</div>
+                        <div class="ellie-welcome-content flex-grow-1">
+                            <h4>Welcome back! I'm Dr. Ellie</h4>
+                            <p>Your AI health assistant, here to track your care journey and ensure you receive the best possible care.</p>
+                        </div>
+                        <div class="text-end">
+                            <button class="btn btn-ellie" onclick="openGeneralChat()">
+                                <i class="fas fa-comments me-2"></i>Chat with Me
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
                 {% set pending_followups = referrals|selectattr('needs_followup', 'equalto', true)|list %}
-                {% set completed_followups = referrals|selectattr('followup_completed', 'equalto', true)|list %}
-                
                 {% if pending_followups %}
-                    <div class="followup-alert">
-                        <h5><i class="fas fa-exclamation-circle me-2"></i>Follow-up Needed</h5>
-                        <p>You have {{ pending_followups|length }} specialist visit(s) that need follow-up. Let me help you report how you're feeling!</p>
-                        <button class="btn btn-warning btn-lg" onclick="startFollowupProcess()">
-                            <i class="fas fa-comments me-2"></i>Start Follow-up with Dr. Ellie
+                <div class="alert-card bg-warning">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle me-3" style="font-size: 1.5rem; color: var(--warning-color);"></i>
+                        <div class="flex-grow-1">
+                            <strong>{{ pending_followups|length }} Follow-up(s) Needed</strong>
+                            <div class="small">Complete your specialist visit updates</div>
+                        </div>
+                        <button class="btn btn-warning btn-sm" onclick="startFollowupProcess()">
+                            <i class="fas fa-play me-1"></i>Start
                         </button>
                     </div>
-                {% elif completed_followups %}
-                    <div class="followup-completed">
-                        <h5><i class="fas fa-check-circle me-2"></i>Great job!</h5>
-                        <p>You've completed your recent follow-ups. I'm always here if you need to chat about your health.</p>
-                        <button class="btn btn-success" onclick="openGeneralChat()">
-                            <i class="fas fa-comments me-2"></i>Chat with Dr. Ellie
-                        </button>
-                    </div>
-                {% else %}
-                    <div class="text-center">
-                        <p>I'm here whenever you need guidance about your healthcare journey.</p>
-                        <button class="btn btn-ellie" onclick="openGeneralChat()">
-                            <i class="fas fa-comments me-2"></i>Chat with Dr. Ellie
-                        </button>
-                    </div>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -522,6 +965,7 @@
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
+                    {% set completed_followups = referrals|selectattr('followup_completed', 'equalto', true)|list %}
                     <div class="stats-number">{{ completed_followups|length if completed_followups else 0 }}</div>
                     <div class="stats-label">Completed Follow-ups</div>
                 </div>
@@ -541,122 +985,131 @@
         <div class="row">
             <div class="col-12">
                 <h2 class="mb-4">
-                    <i class="fas fa-clipboard-list text-primary me-2"></i>
+                    <i class="fas fa-clipboard-list me-2" style="color: var(--primary-accent);"></i>
                     Your Medical Referrals
                 </h2>
 
                 {% if referrals %}
                     {% for referral in referrals %}
-                    <div class="referral-card">
-                        <div class="referral-header">
-                            <div class="row align-items-center">
-                                <div class="col-md-8">
-                                    <h5 class="mb-1">
-                                        <i class="fas fa-user-md me-2"></i>
-                                        Referral #{{ referral.referral_id }}
-                                    </h5>
-                                    <p class="mb-0 opacity-75">
-                                        {% if referral.created_at %}
-                                            <i class="fas fa-calendar-alt me-1"></i>
-                                            {{ referral.created_at }}
-                                        {% endif %}
-                                    </p>
-                                </div>
-                                <div class="col-md-4 text-end">
-                                    {% if referral.followup_completed %}
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-check me-1"></i>Follow-up Complete
-                                        </span>
-                                    {% elif referral.needs_followup %}
-                                        <span class="badge bg-warning">
-                                            <i class="fas fa-clock me-1"></i>Follow-up Needed
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-info">
-                                            <i class="fas fa-hourglass-half me-1"></i>Active
-                                        </span>
-                                    {% endif %}
-                                </div>
+                    <div class="modern-referral-card">
+                        <!-- Header Row -->
+                        <div class="referral-top-section">
+                            <div class="referral-id-badge">#{{ referral.referral_id }}</div>
+                            <div class="referral-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                {% if referral.created_at %}
+                                    {{ referral.created_at }}
+                                {% endif %}
+                            </div>
+                            <div class="referral-status-badge">
+                                {% if referral.followup_completed %}
+                                    <span class="status-complete">
+                                        <i class="fas fa-check-circle"></i> Complete
+                                    </span>
+                                {% elif referral.needs_followup %}
+                                    <span class="status-pending">
+                                        <i class="fas fa-clock"></i> Follow-up Needed
+                                    </span>
+                                {% else %}
+                                    <span class="status-active">
+                                        <i class="fas fa-heartbeat"></i> Active
+                                    </span>
+                                {% endif %}
                             </div>
                         </div>
-                        <div class="card-body p-4">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <span class="specialist-badge">
-                                            <i class="fas fa-stethoscope me-1"></i>
-                                            {{ referral.recommended_specialist }}
-                                        </span>
-                                    </div>
-                                    {% if referral.top_clinic_name %}
-                                    <p class="mb-2">
-                                        <strong><i class="fas fa-hospital me-2"></i>Clinic:</strong>
-                                        <span class="clinic-badge ms-2">{{ referral.top_clinic_name }}</span>
-                                    </p>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="text-end">
-                                        {% if referral.needs_followup %}
-                                            <button class="btn btn-warning btn-sm me-2" onclick="startSpecificFollowup('{{ referral.referral_id }}', '{{ referral.recommended_specialist }}')">
-                                                <i class="fas fa-comments me-1"></i>Complete Follow-up
-                                            </button>
-                                        {% else %}
-                                            <button class="btn btn-outline-primary btn-sm me-2">
-                                                <i class="fas fa-eye me-1"></i>View Details
-                                            </button>
-                                            <button class="btn btn-outline-success btn-sm">
-                                                <i class="fas fa-phone me-1"></i>Book Appointment
-                                            </button>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {% if referral.explanation %}
-                            <div class="mt-3 p-3" style="background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--info-color);">
-                                <h6 class="mb-2">
-                                    <i class="fas fa-info-circle text-info me-2"></i>
-                                    Medical Explanation
-                                </h6>
-                                <p class="mb-0 text-muted">{{ referral.explanation }}</p>
-                            </div>
-                            {% endif %}
 
-                            {% if referral.followup_completed and referral.followup_summary %}
-                            <div class="followup-summary">
-                                <h6 class="mb-2">
-                                    <i class="fas fa-clipboard-check text-success me-2"></i>
-                                    Follow-up Summary
-                                </h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <small><strong>Condition:</strong> {{ referral.followup_summary.condition }}</small>
+                        <!-- Main Content Row -->
+                        <div class="referral-main-content">
+                            <div class="referral-left-content">
+                                <div class="specialist-info">
+                                    <div class="specialist-icon">
+                                        <i class="fas fa-user-md"></i>
                                     </div>
-                                    <div class="col-md-6">
-                                        <small><strong>Satisfaction:</strong> {{ referral.followup_summary.satisfaction }}</small>
+                                    <div class="specialist-details">
+                                        <h5 class="specialist-name">{{ referral.recommended_specialist }}</h5>
+                                        {% if referral.top_clinic_name %}
+                                        <div class="clinic-name">
+                                            <i class="fas fa-hospital"></i>
+                                            {{ referral.top_clinic_name }}
+                                        </div>
+                                        {% endif %}
                                     </div>
-                                </div>
-                                <div class="mt-2">
-                                    <small><strong>Notes:</strong> {{ referral.followup_summary.notes }}</small>
                                 </div>
                             </div>
-                            {% endif %}
+
+                            <div class="referral-right-content">
+                                <div class="referral-actions">
+                                    {% if referral.needs_followup %}
+                                        <button class="btn-followup" onclick="startSpecificFollowup('{{ referral.referral_id }}', '{{ referral.recommended_specialist }}')">
+                                            <i class="fas fa-comments"></i>
+                                            Complete Follow-up
+                                        </button>
+                                    {% else %}
+                                        <div class="action-buttons">
+                                            <button class="btn-action btn-view">
+                                                <i class="fas fa-eye"></i>
+                                                Details
+                                            </button>
+                                            <a href="#" class="view-clinics-btn" onclick="showClinicsMap('{{ referral.recommended_specialist }}', '{{ referral.user_location or 'Unknown' }}')">
+                                                <i class="fas fa-map-marked-alt"></i>
+                                                View Clinics
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- Expandable Medical Info -->
+                        {% if referral.explanation %}
+                        <div class="medical-explanation-section">
+                            <button class="explanation-toggle" data-bs-toggle="collapse" data-bs-target="#explanation{{ loop.index }}">
+                                <i class="fas fa-info-circle"></i>
+                                Medical Explanation
+                                <i class="fas fa-chevron-down toggle-icon"></i>
+                            </button>
+                            <div class="collapse" id="explanation{{ loop.index }}">
+                                <div class="explanation-content">
+                                    <p>{{ referral.explanation }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Follow-up Summary (if completed) -->
+                        {% if referral.followup_completed and referral.followup_summary %}
+                        <div class="followup-summary-section">
+                            <h6 class="summary-title">
+                                <i class="fas fa-clipboard-check"></i>
+                                Follow-up Summary
+                            </h6>
+                            <div class="summary-grid">
+                                <div class="summary-item">
+                                    <strong>Condition:</strong> {{ referral.followup_summary.condition }}
+                                </div>
+                                <div class="summary-item">
+                                    <strong>Satisfaction:</strong> {{ referral.followup_summary.satisfaction }}
+                                </div>
+                                <div class="summary-item summary-full">
+                                    <strong>Notes:</strong> {{ referral.followup_summary.notes }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 {% else %}
                     <!-- Empty State -->
                     <div class="empty-state">
                         <div class="mb-4">
-                            <i class="fas fa-clipboard-list" style="font-size: 4rem; color: var(--secondary-color); opacity: 0.3;"></i>
+                            <i class="fas fa-clipboard-list" style="font-size: 4rem; color: var(--primary-accent); opacity: 0.3;"></i>
                         </div>
                         <h4 class="mb-3">No Referrals Yet</h4>
                         <p class="text-muted mb-4">
                             You don't have any medical referrals at the moment. When you receive referrals from healthcare providers, they will appear here.
                         </p>
                         <div>
-                            <button class="btn btn-primary me-2">
+                            <button class="btn btn-outline-primary me-2">
                                 <i class="fas fa-plus me-2"></i>Request Consultation
                             </button>
                             <button class="btn btn-ellie" onclick="openGeneralChat()">
@@ -669,13 +1122,47 @@
         </div>
     </div>
 
+    <!-- Clinic Map Modal -->
+    <div class="modal fade clinic-map-modal" id="clinicMapModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header" style="background: var(--gradient-primary); color: white;">
+                    <h5 class="modal-title">
+                        <i class="fas fa-map-marked-alt me-2"></i>
+                        <span id="modalSpecialistTitle">Specialist</span> Clinics Near You
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="map-container position-relative">
+                        <div id="clinicMap" class="google-map"></div>
+                        <div class="map-controls">
+                            <button id="recenterBtn" class="btn btn-sm">
+                                <i class="fas fa-crosshairs me-1"></i>Recenter
+                            </button>
+                            <button id="showAllBtn" class="btn btn-sm">
+                                <i class="fas fa-expand me-1"></i>Show All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Click on map markers to see clinic details and get directions
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Dr. Ellie Follow-up Modal -->
     <div class="modal fade" id="ellieFollowupModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content" style="border-radius: 15px; border: none;">
                 <div class="chatbot-modal-header">
                     <div class="d-flex align-items-center">
-                        <div class="chat-avatar ellie me-3">E</div>
+                        <div class="chat-avatar ellie me-3" style="width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">E</div>
                         <div>
                             <h4 class="mb-0">Dr. Ellie - Follow-up Check</h4>
                             <small class="opacity-75">Let's see how you're doing after your specialist visit</small>
@@ -684,15 +1171,15 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 
-                <div class="progress-indicator">
-                    <div class="progress-steps" id="progressSteps">
-                        <div class="progress-step current" id="step1">1</div>
-                        <div class="progress-step pending" id="step2">2</div>
-                        <div class="progress-step pending" id="step3">3</div>
-                        <div class="progress-step pending" id="step4">4</div>
-                        <div class="progress-step pending" id="step5">5</div>
+                <div class="progress-indicator" style="background: var(--bg-dark); border-radius: 10px; padding: 15px; margin: 15px; text-align: center;">
+                    <div class="progress-steps" id="progressSteps" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div class="progress-step current" id="step1" style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">1</div>
+                        <div class="progress-step pending" id="step2" style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; background: #e1e8ed; color: #666;">2</div>
+                        <div class="progress-step pending" id="step3" style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; background: #e1e8ed; color: #666;">3</div>
+                        <div class="progress-step pending" id="step4" style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; background: #e1e8ed; color: #666;">4</div>
+                        <div class="progress-step pending" id="step5" style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; background: #e1e8ed; color: #666;">5</div>
                     </div>
-                    <div class="progress-bar bg-primary" id="progressBar" style="width: 20%"></div>
+                    <div class="progress-bar" id="progressBar" style="width: 20%; height: 4px; background: var(--gradient-text); border-radius: 2px;"></div>
                     <small class="text-muted" id="progressText">Step 1 of 5: How are you feeling?</small>
                 </div>
 
@@ -700,22 +1187,22 @@
                     <!-- Chat messages will be inserted here -->
                 </div>
 
-                <div class="typing-indicator" id="typingIndicator">
-                    <div class="typing-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                <div class="typing-indicator" id="typingIndicator" style="display: none; align-items: center; padding: 15px 20px; background: var(--bg-dark); border-radius: 20px; border: 1px solid var(--border-color); box-shadow: var(--shadow-card); margin-left: 60px;">
+                    <div class="typing-dots" style="display: flex; gap: 5px;">
+                        <span style="width: 8px; height: 8px; background: var(--primary-accent); border-radius: 50%; animation: typing 1.5s infinite;"></span>
+                        <span style="width: 8px; height: 8px; background: var(--primary-accent); border-radius: 50%; animation: typing 1.5s infinite; animation-delay: 0.2s;"></span>
+                        <span style="width: 8px; height: 8px; background: var(--primary-accent); border-radius: 50%; animation: typing 1.5s infinite; animation-delay: 0.4s;"></span>
                     </div>
                 </div>
 
-                <div class="chat-input-area">
-                    <div class="chat-input-group">
-                        <input type="text" class="chat-input" id="followupInput" placeholder="Type your response here..." disabled>
-                        <button class="chat-send-btn" id="followupSendBtn" onclick="sendFollowupResponse()" disabled>
+                <div class="chat-input-area" style="padding: 25px; background: var(--bg-dark); border-top: 1px solid var(--border-color); border-radius: 0 0 15px 15px;">
+                    <div class="chat-input-group" style="display: flex; gap: 15px; align-items: center;">
+                        <input type="text" class="chat-input" id="followupInput" placeholder="Type your response here..." disabled style="flex: 1; border: 2px solid var(--border-color); border-radius: 25px; padding: 15px 20px; font-size: 16px; outline: none; transition: all 0.3s ease; background: var(--bg-card);">
+                        <button class="chat-send-btn" id="followupSendBtn" onclick="sendFollowupResponse()" disabled style="border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.3s ease;">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
-                    <div class="quick-responses" id="quickResponsesArea" style="display: none;">
+                    <div class="quick-responses" id="quickResponsesArea" style="display: none; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
                         <!-- Quick response buttons will be inserted here -->
                     </div>
                 </div>
@@ -729,7 +1216,7 @@
             <div class="row align-items-center">
                 <div class="col-md-6">
                     <p class="mb-0 text-muted">
-                        &copy; 2025 Healthcare Portal. All rights reserved.
+                        &copy; 2025 MedReferral. All rights reserved.
                     </p>
                 </div>
                 <div class="col-md-6 text-end">
@@ -739,15 +1226,369 @@
                 </div>
             </div>
         </div>
-    </div>
+    </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-    <!-- Dr. Ellie Follow-up JavaScript -->
+    <!-- Data for JavaScript -->
     <script>
-        // Follow-up conversation flow
+        // Backend data - you should populate these from your Flask backend
+        window.userLat = {{ user_lat|default('null') }};
+        window.userLng = {{ user_lng|default('null') }};
+        window.userLocation = "{{ user_location if user_location and user_location != 'Unknown' else '' }}";
+    </script>
+    
+    <script>
+        // Create floating particles for medical ambiance
+        function createFloatingParticles() {
+            const animatedBg = document.getElementById('animatedBg');
+            const particleCount = 8;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'floating-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 30 + 's';
+                particle.style.animationDuration = (Math.random() * 15 + 25) + 's';
+                animatedBg.appendChild(particle);
+            }
+        }
+
+        // Enhanced location detection and map functionality
+        let map, userMarker;
+        let markers = [];
+        let directionsRenderer, directionsService;
+        let currentUserLocation = null;
+
+        // Distance calculation function (Haversine formula)
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371; // Earth's radius in kilometers
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // Format distance for display
+        function formatDistance(distanceKm) {
+            if (distanceKm < 1) {
+                return Math.round(distanceKm * 1000) + ' m';
+            } else {
+                return distanceKm.toFixed(1) + ' km';
+            }
+        }
+
+        // Realistic wait time calculation based on specialist type and clinic ranking
+        function calculateRealisticWaitTime(clinicIndex, specialist) {
+            const baseWaitTimes = {
+                'Cardiologist': 14,
+                'Neurologist': 21,
+                'Orthopedist': 12,
+                'Dermatologist': 8,
+                'Gastroenterologist': 18,
+                'Endocrinologist': 16,
+                'Psychiatrist': 10,
+                'Oncologist': 5,
+                'Pulmonologist': 15,
+                'Rheumatologist': 18,
+                'Urologist': 12,
+                'Ophthalmologist': 10,
+                'default': 14
+            };
+
+            const baseWait = baseWaitTimes[specialist] || baseWaitTimes['default'];
+            
+            // Add variance based on clinic ranking (lower rank = longer wait)
+            const rankMultiplier = 1 + (clinicIndex * 0.2); // Each rank adds 20% more wait
+            
+            // Add random factor for realism
+            const randomFactor = 0.8 + (Math.random() * 0.4); // 80% to 120% of base
+            
+            const finalWait = Math.round(baseWait * rankMultiplier * randomFactor);
+            return Math.max(finalWait, 3); // Minimum 3 days
+        }
+
+        // Get user's current location
+        function getUserLocation() {
+            return new Promise((resolve, reject) => {
+                // First try to use backend-provided coordinates
+                if (window.userLat && window.userLng) {
+                    currentUserLocation = {
+                        lat: parseFloat(window.userLat),
+                        lng: parseFloat(window.userLng)
+                    };
+                    resolve(currentUserLocation);
+                    return;
+                }
+
+                // Fallback to browser geolocation
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            currentUserLocation = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            };
+                            resolve(currentUserLocation);
+                        },
+                        (error) => {
+                            console.warn('Geolocation error:', error.message);
+                            // Default to a central location if geolocation fails
+                            currentUserLocation = { lat: 28.6139, lng: 77.2090 }; // Delhi, India
+                            resolve(currentUserLocation);
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 300000 // 5 minutes
+                        }
+                    );
+                } else {
+                    // Browser doesn't support geolocation
+                    currentUserLocation = { lat: 28.6139, lng: 77.2090 }; // Delhi, India
+                    resolve(currentUserLocation);
+                }
+            });
+        }
+
+        function showClinicsMap(specialist, location) {
+            document.getElementById('modalSpecialistTitle').textContent = specialist;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('clinicMapModal'));
+            modal.show();
+            
+            // Initialize map after modal is shown
+            setTimeout(() => {
+                initializeMap(specialist, location);
+            }, 500);
+        }
+
+        async function initializeMap(specialist, location) {
+            try {
+                // Get user location first
+                const userLocation = await getUserLocation();
+                
+                // Map styling for your sage green theme
+                const mapStyles = [
+                    { elementType: 'geometry', stylers: [{ color: '#f8faf9' }] },
+                    { elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }] },
+                    { elementType: 'labels.text.fill', stylers: [{ color: '#065f46' }] },
+                    {
+                        featureType: 'administrative.locality',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#10b981' }]
+                    },
+                    {
+                        featureType: 'poi',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'simplified' }]
+                    },
+                    {
+                        featureType: 'poi.park',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#e6fffa' }]
+                    },
+                    {
+                        featureType: 'road',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#ffffff' }]
+                    },
+                    {
+                        featureType: 'road',
+                        elementType: 'geometry.stroke',
+                        stylers: [{ color: '#f0fdf4' }]
+                    },
+                    {
+                        featureType: 'road.highway',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#f0fdf4' }]
+                    },
+                    {
+                        featureType: 'water',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#a7f3d0' }]
+                    }
+                ];
+
+                // Initialize map centered on user location
+                map = new google.maps.Map(document.getElementById('clinicMap'), {
+                    zoom: 12,
+                    center: userLocation,
+                    styles: mapStyles,
+                    disableDefaultUI: true,
+                    zoomControl: true,
+                    mapTypeControl: false,
+                    scaleControl: true,
+                    streetViewControl: false,
+                    rotateControl: false,
+                    fullscreenControl: true
+                });
+
+                // Initialize directions service
+                directionsService = new google.maps.DirectionsService();
+                directionsRenderer = new google.maps.DirectionsRenderer({
+                    suppressMarkers: false,
+                    polylineOptions: {
+                        strokeColor: '#10b981',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 6
+                    }
+                });
+                directionsRenderer.setMap(map);
+
+                // Add user location marker
+                userMarker = new google.maps.Marker({
+                    position: userLocation,
+                    map: map,
+                    title: 'Your Location',
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 15,
+                        fillColor: '#34d399',
+                        fillOpacity: 1,
+                        strokeWeight: 4,
+                        strokeColor: '#ffffff'
+                    },
+                    animation: google.maps.Animation.DROP
+                });
+
+                // Generate realistic clinic data around user location
+                const clinicLocations = [
+                    { lat: userLocation.lat + 0.01, lng: userLocation.lng + 0.01 },
+                    { lat: userLocation.lat - 0.008, lng: userLocation.lng + 0.015 },
+                    { lat: userLocation.lat + 0.012, lng: userLocation.lng - 0.007 },
+                    { lat: userLocation.lat - 0.006, lng: userLocation.lng - 0.012 },
+                    { lat: userLocation.lat + 0.018, lng: userLocation.lng + 0.008 },
+                    { lat: userLocation.lat - 0.014, lng: userLocation.lng + 0.009 },
+                    { lat: userLocation.lat + 0.007, lng: userLocation.lng - 0.016 }
+                ];
+
+                const sampleClinics = clinicLocations.map((loc, index) => {
+                    const distance = calculateDistance(userLocation.lat, userLocation.lng, loc.lat, loc.lng);
+                    return {
+                        name: `${specialist} Medical Center ${index + 1}`,
+                        lat: loc.lat,
+                        lng: loc.lng,
+                        address: `${100 + (index * 111)} Medical Plaza, Suite ${100 + (index * 50)}`,
+                        distance: distance,
+                        distanceText: formatDistance(distance),
+                        waitDays: calculateRealisticWaitTime(index, specialist),
+                        cost: Math.floor(Math.random() * 800) + 400 // ₹400-₹1200
+                    };
+                });
+
+                // Sort clinics by distance (closest first)
+                sampleClinics.sort((a, b) => a.distance - b.distance);
+
+                // Add clinic markers
+                markers = sampleClinics.map((clinic, index) => {
+                    const marker = new google.maps.Marker({
+                        position: { lat: clinic.lat, lng: clinic.lng },
+                        map: map,
+                        title: clinic.name,
+                        label: {
+                            text: `${index + 1}`,
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            fontSize: '14px'
+                        },
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            scale: 18,
+                            fillColor: '#10b981',
+                            fillOpacity: 1,
+                            strokeWeight: 3,
+                            strokeColor: '#ffffff'
+                        },
+                        animation: google.maps.Animation.DROP
+                    });
+
+                    // Enhanced info window with your theme colors
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `
+                            <div style="padding: 15px; max-width: 280px; font-family: 'Inter', sans-serif;">
+                                <h6 style="margin-bottom: 10px; color: #065f46; font-weight: 700;">${clinic.name}</h6>
+                                <p style="margin-bottom: 8px; font-size: 0.9rem; color: #374151; line-height: 1.4;">${clinic.address}</p>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; font-size: 0.85rem;">
+                                    <div style="text-align: center; padding: 8px; background: rgba(16, 185, 129, 0.1); border-radius: 6px;">
+                                        <i class="fas fa-map-marker-alt" style="color: #10b981; margin-bottom: 4px;"></i>
+                                        <div style="font-weight: 600; color: #065f46;">${clinic.distanceText}</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 8px; background: rgba(16, 185, 129, 0.1); border-radius: 6px;">
+                                        <i class="fas fa-clock" style="color: #10b981; margin-bottom: 4px;"></i>
+                                        <div style="font-weight: 600; color: #065f46;">${clinic.waitDays} days</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 8px; background: rgba(16, 185, 129, 0.1); border-radius: 6px;">
+                                        <i class="fas fa-rupee-sign" style="color: #10b981; margin-bottom: 4px;"></i>
+                                        <div style="font-weight: 600; color: #065f46;">₹${clinic.cost}</div>
+                                    </div>
+                                </div>
+                                <button onclick="openDirections(${clinic.lat}, ${clinic.lng}, '${clinic.name}')" 
+                                        style="background: linear-gradient(135deg, #10b981, #065f46); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; width: 100%; font-weight: 600; transition: all 0.3s ease;">
+                                    <i class="fas fa-directions" style="margin-right: 6px;"></i> Get Directions
+                                </button>
+                            </div>
+                        `
+                    });
+
+                    marker.addListener('click', () => {
+                        // Close all other info windows
+                        markers.forEach(m => {
+                            if (m.infoWindow) m.infoWindow.close();
+                        });
+                        
+                        infoWindow.open(map, marker);
+                        marker.infoWindow = infoWindow;
+                        
+                        // Pan to marker
+                        map.panTo(marker.getPosition());
+                    });
+
+                    return marker;
+                });
+
+                // Map controls
+                document.getElementById('recenterBtn').onclick = () => {
+                    map.setCenter(userLocation);
+                    map.setZoom(12);
+                };
+
+                document.getElementById('showAllBtn').onclick = () => {
+                    const bounds = new google.maps.LatLngBounds();
+                    bounds.extend(userLocation);
+                    markers.forEach(marker => bounds.extend(marker.getPosition()));
+                    map.fitBounds(bounds);
+                    
+                    // Add padding to bounds
+                    const padding = { top: 50, right: 50, bottom: 50, left: 50 };
+                    map.fitBounds(bounds, padding);
+                };
+
+            } catch (error) {
+                console.error('Error initializing map:', error);
+            }
+        }
+
+        function openDirections(lat, lng, name) {
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            let url;
+            if (isMobile) {
+                url = `https://maps.google.com/?daddr=${lat},${lng}`;
+            } else {
+                url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(name)}`;
+            }
+            
+            window.open(url, '_blank');
+        }
+
+        // Follow-up conversation flow (existing implementation)
         let currentReferralId = null;
         let currentSpecialist = null;
         let followupStep = 0;
@@ -794,9 +1635,7 @@
             "Step 5 of 5: Additional notes"
         ];
 
-        // Initialize follow-up process
         function startFollowupProcess() {
-            // Get first pending referral
             const pendingReferrals = {{ pending_followups|tojson|safe if pending_followups else '[]' }};
             if (pendingReferrals.length > 0) {
                 startSpecificFollowup(pendingReferrals[0].referral_id, pendingReferrals[0].recommended_specialist);
@@ -809,16 +1648,13 @@
             followupStep = 0;
             followupData = {};
             
-            // Reset modal
             document.getElementById('followupChatArea').innerHTML = '';
             document.getElementById('progressText').textContent = progressTexts[0];
             updateProgressBar();
             
-            // Show modal
             const modal = new bootstrap.Modal(document.getElementById('ellieFollowupModal'));
             modal.show();
             
-            // Start conversation
             setTimeout(() => {
                 showFollowupMessage(`Great! Let's talk about your visit to the ${specialist}. I have a few questions to make sure you're getting the best care.`);
                 setTimeout(() => {
@@ -836,12 +1672,10 @@
             const question = followupQuestions[followupStep];
             showFollowupMessage(question.question);
             
-            // Show quick responses if available
             if (question.quickResponses) {
                 showQuickResponses(question.quickResponses);
             }
             
-            // Enable input
             enableFollowupInput();
         }
 
@@ -850,9 +1684,12 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = 'chat-message ellie';
             messageDiv.innerHTML = `
-                <div class="chat-avatar ellie">E</div>
-                <div class="chat-bubble ellie">${message}</div>
+                <div class="chat-avatar ellie" style="width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px;">E</div>
+                <div class="chat-bubble ellie" style="max-width: 70%; padding: 15px 20px; border-radius: 20px; word-wrap: break-word;">${message}</div>
             `;
+            messageDiv.style.marginBottom = '20px';
+            messageDiv.style.display = 'flex';
+            messageDiv.style.alignItems = 'flex-start';
             chatArea.appendChild(messageDiv);
             chatArea.scrollTop = chatArea.scrollHeight;
         }
@@ -862,11 +1699,15 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = 'chat-message patient';
             messageDiv.innerHTML = `
-                <div class="chat-bubble patient">${message}</div>
-                <div class="chat-avatar patient">
+                <div class="chat-bubble patient" style="max-width: 70%; padding: 15px 20px; border-radius: 20px; word-wrap: break-word;">${message}</div>
+                <div class="chat-avatar patient" style="width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-left: 15px; background: var(--primary-accent); color: white;">
                     <i class="fas fa-user"></i>
                 </div>
             `;
+            messageDiv.style.marginBottom = '20px';
+            messageDiv.style.display = 'flex';
+            messageDiv.style.alignItems = 'flex-start';
+            messageDiv.style.justifyContent = 'flex-end';
             chatArea.appendChild(messageDiv);
             chatArea.scrollTop = chatArea.scrollHeight;
         }
@@ -899,7 +1740,6 @@
             btn.disabled = false;
             input.focus();
             
-            // Clear quick responses after a delay
             setTimeout(() => {
                 document.getElementById('quickResponsesArea').style.display = 'none';
             }, 10000);
@@ -911,23 +1751,18 @@
             
             if (!response) return;
             
-            // Show patient message
             showPatientMessage(response);
             
-            // Store response
             const question = followupQuestions[followupStep];
             followupData[question.key] = response;
             
-            // Clear input and disable
             input.value = '';
             input.disabled = true;
             document.getElementById('followupSendBtn').disabled = true;
             document.getElementById('quickResponsesArea').style.display = 'none';
             
-            // Show typing indicator
             showTyping();
             
-            // Move to next question
             followupStep++;
             updateProgressBar();
             
@@ -971,15 +1806,20 @@
                 document.getElementById('progressText').textContent = progressTexts[followupStep];
             }
             
-            // Update step indicators
             for (let i = 1; i <= 5; i++) {
                 const step = document.getElementById(`step${i}`);
                 if (i <= followupStep + 1) {
                     step.className = 'progress-step completed';
+                    step.style.background = 'var(--primary-accent)';
+                    step.style.color = 'white';
                 } else if (i === followupStep + 2) {
                     step.className = 'progress-step current';
+                    step.style.background = 'var(--primary-accent)';
+                    step.style.color = 'white';
                 } else {
                     step.className = 'progress-step pending';
+                    step.style.background = '#e1e8ed';
+                    step.style.color = '#666';
                 }
             }
         }
@@ -991,7 +1831,6 @@
                 hideTyping();
                 showFollowupMessage("Perfect! I have all the information I need. Let me submit your follow-up report to your healthcare team.");
                 
-                // Submit to backend
                 submitFollowupData();
             }, 2000);
         }
@@ -1016,10 +1855,8 @@
                 if (data.success) {
                     showFollowupMessage("Excellent! Your follow-up has been submitted successfully. Your healthcare team will review this information. Thank you for taking the time to update us on your condition! 🎉");
                     
-                    // Auto-close after delay
                     setTimeout(() => {
                         bootstrap.Modal.getInstance(document.getElementById('ellieFollowupModal')).hide();
-                        // Refresh page to show updated status
                         location.reload();
                     }, 4000);
                 } else {
@@ -1033,27 +1870,56 @@
         }
 
         function openGeneralChat() {
-            // This would open your existing general chatbot
             alert('General chat with Dr. Ellie - integrate with your existing chatbot here');
         }
 
-        // Handle Enter key in input
-        document.getElementById('followupInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !this.disabled) {
-                sendFollowupResponse();
-            }
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            createFloatingParticles();
+            
+            // Initialize user location detection
+            getUserLocation().then(location => {
+                console.log('User location detected:', location);
+            }).catch(error => {
+                console.error('Error getting user location:', error);
+            });
+            
+            document.getElementById('followupInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !this.disabled) {
+                    sendFollowupResponse();
+                }
+            });
+
+            // Focus enhancement for input
+            document.getElementById('followupInput').addEventListener('focus', function() {
+                this.style.borderColor = 'var(--border-hover)';
+                this.style.boxShadow = '0 0 0 3px var(--primary-glow)';
+            });
+
+            document.getElementById('followupInput').addEventListener('blur', function() {
+                this.style.borderColor = 'var(--border-color)';
+                this.style.boxShadow = 'none';
+            });
+
+            // Auto-dismiss alerts
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
         });
 
-        // Auto-dismiss alerts
-        setTimeout(function() {
-            var alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                var bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            });
-        }, 5000);
-
+        // Add typing animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes typing {
+                0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+                30% { transform: translateY(-8px); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
-   
 </body>
 </html>

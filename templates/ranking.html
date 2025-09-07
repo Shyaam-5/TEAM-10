@@ -11,13 +11,526 @@
     
     <!-- Google Maps API with proper key -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBcN4HTut5WWjRN0oWH7cL-Nxeyko9WJzg&libraries=places,geometry"></script>
-    <style>
+ <style>
+        /* Updated Sage Green Color Scheme */
+        :root {
+            --bg-dark: #ffffff;
+            --bg-card: #f8faf9;
+            --primary-accent: #10b981; /* Sage green */
+            --primary-glow: rgba(16, 185, 129, 0.08);
+            --border-color: rgba(156, 163, 175, 0.15);
+            --text-primary: #065f46;
+            --text-secondary: #374151;
+            --gradient-text: linear-gradient(90deg, #10b981, #34d399);
+            --shadow-glow: 0 0 35px var(--primary-glow);
+            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.06);
+            --success-light: rgba(16, 185, 129, 0.1);
+            --border-hover: rgba(16, 185, 129, 0.3);
+        }
+
+        /* Enhanced Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-dark);
+        }
+
+        /* Header - FIXED NAVIGATION */
+        .header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+
+        .nav-brand {
+            flex: 0 0 auto;
+            max-width: 200px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            color: var(--primary-accent);
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-accent);
+            flex-shrink: 0;
+        }
+
+        .nav-links {
+            flex: 1 1 auto;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            min-width: 0;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: color 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-actions {
+            flex: 0 0 auto;
+            min-width: 120px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-secondary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-accent);
+            border: 2px solid var(--primary-accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-accent);
+            color: white;
+        }
+
+        .btn-back {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .btn-back:hover {
+            color: var(--text-primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            min-height: calc(100vh - 70px);
+            padding: 2rem 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .specialist-highlight {
+            color: var(--primary-accent);
+        }
+
+        .location-highlight {
+            color: #059669;
+        }
+
+        .page-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+        }
+
+        /* Filters Section */
+        .filters-section {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            align-items: end;
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+        }
+
+        .distance-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .distance-filter label {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .slider {
+            width: 200px;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border-color);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-accent);
+            cursor: pointer;
+        }
+
+        /* Map and Clinics Layout */
+        .map-clinics-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            height: 600px;
+        }
+
+        .map-section {
+            position: relative;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-color);
+        }
+
+        .google-map {
+            width: 100%;
+            height: 100%;
+        }
+
         .gm-fullscreen-control {
             right: auto !important;
             left: 10px !important;
             top: 10px !important;
         }
+
+        .map-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .clinics-section {
+            background: var(--bg-card);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .clinics-header {
+            margin-bottom: 1rem;
+        }
+
+        .clinics-count {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .clinics-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Clinic Cards */
+        .clinic-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem;
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: var(--success-light);
+        }
+
+        .clinic-card:hover {
+            border-color: var(--primary-accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .clinic-card.selected {
+            border-color: var(--primary-accent);
+            background: rgba(16, 185, 129, 0.15);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .clinic-rank {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .clinic-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .clinic-name {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .clinic-address {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .clinic-metrics {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .metric svg {
+            flex-shrink: 0;
+            color: var(--primary-accent);
+        }
+
+        .clinic-actions {
+            margin-top: 0.75rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .empty-state-content {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            color: var(--text-secondary);
+            margin: 0 auto 2rem;
+        }
+
+        .empty-state-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-content p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* Responsive Design - FIXED NAVIGATION ON MOBILE */
+        @media (max-width: 1200px) {
+            .map-clinics-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .map-section {
+                height: 400px;
+            }
+            
+            .clinics-section {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1rem;
+                height: auto;
+                min-height: 70px;
+                flex-wrap: nowrap;
+            }
+            
+            .nav-links {
+                display: none; /* Hide on mobile to prevent overlap */
+            }
+            
+            .nav-brand {
+                flex: 1;
+            }
+            
+            .logo-text {
+                font-size: 1.3rem;
+            }
+            
+            .filters-section {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-container {
+                max-width: none;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .nav-container {
+                padding: 0 0.75rem;
+            }
+            
+            .logo-text {
+                font-size: 1.1rem;
+            }
+            
+            .btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
     </style>
+</head>
 </head>
 <body>
     <!-- Header -->
@@ -37,7 +550,7 @@
             <div class="nav-links">
                 <a href="/" class="nav-link">Home</a>
                 <a href="/referral" class="nav-link">Referral</a>
-                <a href="/ranking" class="nav-link">Clinics</a>
+                <a href="/ranking" class="nav-link">Specialists</a>
             </div>
             
             <div class="nav-actions">
@@ -120,7 +633,7 @@
                 <!-- Clinics List Section -->
                 <div class="clinics-section">
                     <div class="clinics-header">
-                        <h3 class="clinics-count"><span id="clinic-count">{{ clinics|length }}</span> Clinics Found</h3>
+                        <h3 class="clinics-count"><span id="clinic-count">{{ clinics|length }}</span> Specialists Found</h3>
                     </div>
                     
                     <div class="clinics-list" id="clinics-list">
@@ -195,7 +708,7 @@
                             <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 5 7 1 12 1S21 5 21 10Z" stroke="currentColor" stroke-width="2"/>
                             <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
                         </svg>
-                        <h3>No Clinics Found</h3>
+                        <h3>No Specialists Found</h3>
                         <p>No {{ specialist or "specialist" }} clinics found near {{ location }}.</p>
                     {% endif %}
                     <a href="/referral" class="btn btn-primary">Try New Analysis</a>
@@ -440,8 +953,10 @@
         }
 
         // Directions function
-        function openDirections(lat, lng, name) {
-            const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(name)}`;
+  function openDirections(lat, lng, name) {
+            // Using Google's recommended URL format with lat/lng and encoded name
+            const encodedName = encodeURIComponent(name);
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodedName}&travelmode=driving`;
             window.open(url, '_blank');
         }
 
@@ -456,454 +971,3 @@
 </body>
 </html>
 
-<style>
-/* Enhanced Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    line-height: 1.6;
-    color: #1a202c;
-    background: #f7fafc;
-}
-
-/* Header */
-.header {
-    background: white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.nav-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 70px;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    text-decoration: none;
-}
-
-.logo-icon {
-    width: 32px;
-    height: 32px;
-    color: var(--secondary-600);
-}
-
-.logo-text {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #0c5d02;
-}
-
-.nav-links {
-    display: flex;
-    gap: 2rem;
-}
-
-.nav-link {
-    text-decoration: none;
-    color: #4a5568;
-    font-weight: 500;
-    transition: color 0.2s;
-}
-
-.nav-link:hover {
-    color: #667eea;
-}
-
-/* Buttons */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 0.75rem;
-    font-weight: 600;
-    font-size: 0.875rem;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-primary {
-    background: #7ff465;
-    color: white;
-}
-
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.btn-secondary {
-    background: white;
-    color: #4a5568;
-    border: 2px solid #e2e8f0;
-}
-
-.btn-secondary:hover {
-    border-color: #667eea;
-    color: #667eea;
-}
-
-.btn-outline {
-    background: transparent;
-    color: #0c5d02;
-    border: 2px solid #3bfa10;
-}
-
-.btn-outline:hover {
-    background: #3bfa10;
-    color: white;
-}
-
-.btn-back {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #4a5568;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s;
-}
-
-.btn-back:hover {
-    color: #667eea;
-}
-
-/* Main Content */
-.main-content {
-    min-height: calc(100vh - 70px);
-    padding: 2rem 0;
-}
-
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
-}
-
-/* Page Header */
-.page-header {
-    margin-bottom: 2rem;
-}
-
-.page-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #1a202c;
-    margin-bottom: 0.5rem;
-}
-
-.specialist-highlight {
-    color: #667eea;
-}
-
-.location-highlight {
-    color: #48bb78;
-}
-
-.page-subtitle {
-    font-size: 1.125rem;
-    color: #718096;
-}
-
-/* Filters Section */
-.filters-section {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 2rem;
-    align-items: end;
-}
-
-.search-container {
-    position: relative;
-    flex: 1;
-    max-width: 400px;
-}
-
-.search-input {
-    width: 100%;
-    padding: 1rem 1rem 1rem 3rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 0.75rem;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #667eea;
-}
-
-.search-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
-    color: #a0aec0;
-}
-
-.distance-filter {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.distance-filter label {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #4a5568;
-}
-
-.slider {
-    width: 200px;
-    height: 6px;
-    border-radius: 3px;
-    background: #e2e8f0;
-    outline: none;
-    -webkit-appearance: none;
-}
-
-.slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #667eea;
-    cursor: pointer;
-}
-
-/* Map and Clinics Layout */
-.map-clinics-layout {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 2rem;
-    height: 600px;
-}
-
-.map-section {
-    position: relative;
-    border-radius: 1.5rem;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.google-map {
-    width: 100%;
-    height: 100%;
-}
-
-.map-controls {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.clinics-section {
-    background: white;
-    border-radius: 1.5rem;
-    padding: 1.5rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.clinics-header {
-    margin-bottom: 1rem;
-}
-
-.clinics-count {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1a202c;
-}
-
-.clinics-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-/* Clinic Cards */
-.clinic-card {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.25rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background-color: #e4f8dd;
-}
-
-.clinic-card:hover {
-    border-color: #3bfa10;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-}
-
-.clinic-card.selected {
-    border-color: #3bfa10
-    background: #f0f4ff;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
-}
-
-.clinic-rank {
-    width: 32px;
-    height: 32px;
-    background:#3bfa10;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.clinic-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.clinic-name {
-    font-weight: 700;
-    font-size: 1.125rem;
-    color: #1a202c;
-    margin-bottom: 0.25rem;
-}
-
-.clinic-address {
-    font-size: 0.875rem;
-    color: #718096;
-    margin-bottom: 0.75rem;
-    line-height: 1.4;
-}
-
-.clinic-metrics {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.metric {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.75rem;
-    color: #a0aec0;
-}
-
-.metric svg {
-    flex-shrink: 0;
-}
-
-.clinic-actions {
-    margin-top: 0.75rem;
-}
-
-/* Empty State */
-.empty-state {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 400px;
-}
-
-.empty-state-content {
-    text-align: center;
-    max-width: 400px;
-}
-
-.empty-icon {
-    width: 80px;
-    height: 80px;
-    color: #a0aec0;
-    margin: 0 auto 2rem;
-}
-
-.empty-state-content h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1a202c;
-    margin-bottom: 1rem;
-}
-
-.empty-state-content p {
-    color: #718096;
-    margin-bottom: 2rem;
-    line-height: 1.6;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .map-clinics-layout {
-        grid-template-columns: 1fr;
-        height: auto;
-    }
-    
-    .map-section {
-        height: 400px;
-    }
-    
-    .clinics-section {
-        height: 400px;
-    }
-}
-
-@media (max-width: 768px) {
-    .filters-section {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .search-container {
-        max-width: none;
-    }
-    
-    .page-title {
-        font-size: 2rem;
-    }
-    
-    .nav-container {
-        padding: 0 1rem;
-        flex-wrap: wrap;
-        height: auto;
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-    }
-    
-    .nav-links {
-        order: 3;
-        width: 100%;
-        margin-top: 1rem;
-        justify-content: center;
-    }
-}
-</style>

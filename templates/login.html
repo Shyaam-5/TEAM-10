@@ -11,33 +11,136 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Updated Sage Green Color Scheme */
+        :root {
+            --bg-dark: #ffffff;
+            --bg-card: #f8faf9;
+            --primary-accent: #10b981; /* Sage green */
+            --primary-glow: rgba(16, 185, 129, 0.08);
+            --border-color: rgba(156, 163, 175, 0.15);
+            --text-primary: #065f46;
+            --text-secondary: #374151;
+            --gradient-text: linear-gradient(90deg, #10b981, #34d399);
+            --shadow-glow: 0 0 35px var(--primary-glow);
+            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.06);
+            --success-light: rgba(16, 185, 129, 0.1);
+            --border-hover: rgba(16, 185, 129, 0.3);
+        }
 
-        .logo-text{
-            color: rgb(42, 233, 42) !important;
+        .logo-text {
+            color: var(--primary-accent) !important;
         }
-        .logo-icon{
-            color: rgb(42, 233, 42) !important;
+
+        .logo-icon {
+            color: var(--primary-accent) !important;
         }
-        .btn-outline{
-            outline:1px solid rgb(42, 233, 42) !important ;
+
+        .btn-outline {
+            outline: 1px solid var(--primary-accent) !important;
             border: none;
-color: rgb(42, 233, 42) !important ;
+            color: var(--primary-accent) !important;
         }
-        .sub-btn{
-            background-color:rgb(42, 233, 42) !important  ;
+
+        .btn-outline:hover {
+            background-color: var(--success-light) !important;
+            border-color: var(--primary-accent) !important;
+        }
+
+        .sub-btn {
+            background-color: var(--primary-accent) !important;
             border: none;
+            color: white !important;
         }
-        .sub-btn{
-         background-color:rgb(42, 233, 42) !important  ;
-         border: none;
+
+        .sub-btn:hover {
+            background-color: #059669 !important; /* Darker sage on hover */
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
         }
-         .oauth-btn:hover{
-         background-color:rgb(242, 255, 242) !important  ;
-         }
-        .auth-link{
-            color: rgb(42, 233, 42);
+
+        .oauth-btn:hover {
+            background-color: var(--success-light) !important;
+            border-color: var(--border-hover) !important;
         }
-    
+
+        .auth-link {
+            color: var(--primary-accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-link:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
+        /* Enhanced form styling with sage theme */
+        .form-input:focus {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+        }
+
+        .auth-title {
+            color: var(--text-primary);
+        }
+
+        .auth-subtitle {
+            color: var(--text-secondary);
+        }
+
+        .form-label {
+            color: var(--text-primary);
+        }
+
+        .info-panel {
+            background: var(--success-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .info-icon {
+            color: var(--primary-accent);
+        }
+
+        .info-panel p {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        /* Flash messages styling */
+        .flash {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .flash-success {
+            background-color: var(--success-light);
+            color: var(--text-primary);
+            border: 1px solid var(--primary-accent);
+        }
+
+        .flash-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .flash-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -54,10 +157,8 @@ color: rgb(42, 233, 42) !important ;
                     <span class="logo-text">MedReferral</span>
                 </a>
                 
-                
-                
-                <div class="auth-actions ">
-                    <a href="/signup" class="btn btn-outline ">Sign Up</a>
+                <div class="auth-actions">
+                    <a href="/signup" class="btn btn-outline">Sign Up</a>
                 </div>
             </div>
         </nav>
@@ -65,7 +166,6 @@ color: rgb(42, 233, 42) !important ;
 
     <!-- Flash Messages Area -->
     <div id="flash-messages" class="flash-container" aria-live="polite">
-        <!-- Flask flash messages will be injected here -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}

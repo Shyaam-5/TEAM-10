@@ -21,18 +21,22 @@
     <script src="static/assets/js/chatbot.js"></script>
     <style>
         /* Modern Minimalist Dark Theme inspired by user preferences */
-        :root {
-            --bg-dark: #ffffff;
-            --bg-card: #ffffff;
-            --primary-accent: #63ff4b;
-            --primary-glow: rgba(78, 255, 75, 0.095);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --text-primary: #035100;
-            --text-secondary: #0c5d02;
-            --gradient-text: linear-gradient(90deg, #216e00, #3bfa10);
-            --shadow-glow: 0 0 35px var(--primary-glow);
-            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.2);
-        }
+:root {
+    --bg-dark: #ffffff;
+    --bg-card: #f8faf9;
+    --primary-accent: #10b981; /* Sage green */
+    --primary-glow: rgba(16, 185, 129, 0.08);
+    --border-color: rgba(156, 163, 175, 0.15);
+    --text-primary: #065f46;
+    --text-secondary: #374151;
+    --gradient-text: linear-gradient(90deg, #10b981, #34d399);
+    --shadow-glow: 0 0 35px var(--primary-glow);
+    --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.06);
+    
+    /* Additional supporting colors for sage theme */
+    --success-light: rgba(16, 185, 129, 0.1);
+    --border-hover: rgba(16, 185, 129, 0.3);
+}
 
         /* --- Base & Typography --- */
         * {
@@ -61,7 +65,7 @@
             font-weight: 700;
         }
         a:hover{
-            color: rgb(0, 0, 0);
+            color: var(--text-primary);
         }
 
         .section-title {
@@ -161,7 +165,7 @@
 
         .btn-primary {
             background: var(--primary-accent);
-            color: #0f0e0e;
+            color: white;
         }
 
         .btn-primary:hover {
@@ -206,8 +210,8 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            color: green;
-            border: 1px dashed rgb(4, 235, 4);
+              color: var(--primary-accent);
+            border: 1px solid var(--border-color);
             padding: 0.5rem 1rem;
             border-radius: 2rem;
             font-size: 0.875rem;
@@ -218,13 +222,13 @@
         
         .hero-title {
             font-size: 3.75rem;
-            font-weight: 800;
+            font-weight: 700;
             line-height: 1.1;
             margin-bottom: 1.5rem;
             max-width: 900px;
             margin-left: auto;
             margin-right: auto;
-  font-family: "Michroma", sans-serif;
+  font-family: "Inter", sans-serif;
         }
         
         .hero-subtitle {
@@ -311,20 +315,21 @@
         .status-dot {
             width: 8px;
             height: 8px;
-            background: #28a745; /* Green for online */
+            background: var(--primary-accent);
+            box-shadow: 0 0 8px var(--primary-accent);
             border-radius: 50%;
-            box-shadow: 0 0 8px #28a745;
+            
             animation: pulse 2s infinite;
         }
 
         .dashboard-content { padding: 1.5rem; }
         .analysis-card {
-            background: linear-gradient(135deg, rgba(0, 47, 0, 0.1), rgba(75, 255, 102, 0.05));
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(52, 211, 153, 0.03));
             color: var(--text-primary);
             padding: 1.5rem;
             border-radius: 0.75rem;
             margin-bottom: 1.5rem;
-            border: 1px solid rgba(75, 255, 96, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.15);
         }
         .card-title {
             font-size: 0.875rem;
@@ -341,7 +346,7 @@
         .specialist-name { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
         .confidence {
             background: var(--primary-accent);
-            color: #033300;
+            color: #ffffff;
             padding: 0.25rem 0.75rem;
             border-radius: 1rem;
             font-size: 0.875rem;
@@ -434,7 +439,7 @@ border-top: 1px dashed green;       } /* Slightly different dark shade */
             background: var(--bg-card);
             padding: 2.5rem;
             border-radius: 1rem;
-            border: 1px solid rgb(172, 255, 172);
+             border: 1px solid var(--border-color);
             transition: all 0.3s ease;
         }
         .step-card:hover {
@@ -479,7 +484,7 @@ border-top: 1px dashed green;       } /* Slightly different dark shade */
             background: var(--bg-card);
             padding: 2.5rem;
             border-radius: 1rem;
-            border: 1px solid rgb(164, 255, 164);
+            border: 1px solid var(--border-color);
             transition: all 0.3s ease;
         }
         .feature-card:hover {
@@ -559,7 +564,7 @@ border-top: 1px dashed green;     }
 
         /* --- Footer --- */
         .footer {
-            background: linear-gradient(to top, rgba(21, 255, 21, 0.13) , white);
+            background: linear-gradient(to top, var(--primary-glow), white);
             color: var(--text-secondary);
             padding: 4rem 0 2rem;
             border-top: 1px solid var(--border-color);
@@ -621,7 +626,7 @@ border-top: 1px dashed green;     }
             align-items: center;
             gap: 0.75rem;
             text-decoration: none;
-            color: #045610;
+            color: var(--primary-accent);
         }
     </style>
 </head>
@@ -651,8 +656,26 @@ border-top: 1px dashed green;     }
                     <a href="/referral" class="btn btn-primary">Dashboard</a>
                     <a href="/logout" class="btn btn-outline">Log Out</a>
                 {% else %}
-                    <a href="/login" class="btn btn-outline">Log In</a>
-                    <a href="/signup" class="btn btn-primary">Sign Up</a>
+                    <!-- <a href="/login" class="btn btn-outline">Log In</a>
+                    <a href="/signup" class="btn btn-primary">Sign Up</a> -->
+
+                     <!-- Login Dropdown -->
+        <div class="dropdown" style="display:inline-block; position:relative; margin-bottom:10px;">
+            <button class="btn btn-outline dropdown-btn">Log In ▾</button>
+            <div class="dropdown-content" style="display:none; position:absolute; background:white; box-shadow:0px 4px 8px rgba(0,0,0,0.2); z-index:100; min-width:160px;">
+                <a href="/patient/login" style="display:block; padding:8px 12px; text-decoration:none;">Patient Login</a>
+                <a href="/login" style="display:block; padding:8px 12px; text-decoration:none;">Doctor Login</a>
+            </div>
+        </div>
+
+        <!-- Signup Dropdown -->
+        <div class="dropdown" style="display:inline-block; position:relative;">
+            <button class="btn btn-primary dropdown-btn">Sign Up ▾</button>
+            <div class="dropdown-content" style="display:none; position:absolute; background:white; box-shadow:0px 4px 8px rgba(0,0,0,0.2); z-index:100; min-width:160px;">
+                <a href="/patient/signup" style="display:block; padding:8px 12px; text-decoration:none;">Patient Sign Up</a>
+                <a href="/signup" style="display:block; padding:8px 12px; text-decoration:none;">Doctor Sign Up</a>
+            </div>
+        </div>
                 {% endif %}
             </div>
         </div>
@@ -1115,5 +1138,28 @@ border-top: 1px dashed green;     }
             </div>
         </div>
     </footer>
+
+
+<script>
+    document.querySelectorAll('.dropdown-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const content = btn.nextElementSibling;
+            // Toggle visibility
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        });
+    });
+
+    // Close dropdown if clicked outside
+    window.addEventListener('click', function(e) {
+        document.querySelectorAll('.dropdown-content').forEach(dc => {
+            if (!dc.contains(e.target) && !dc.previousElementSibling.contains(e.target)) {
+                dc.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+
 </body>
 </html>
