@@ -57,7 +57,9 @@ A comprehensive Flask application that leverages machine learning and AI to opti
 Create a `.env` file in the root directory:
 Required API Keys
 GEMINI_API_KEY=your_gemini_api_key
+
 GOOGLE_PLACES_API_KEY=your_google_places_key
+
 GROQ_API_KEY=your_groq_api_key
 PINECONE_API_KEY=your_pinecone_key
 
